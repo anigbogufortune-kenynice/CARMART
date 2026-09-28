@@ -7,7 +7,7 @@ test('draft API: validation codes, patch and delete', async ({ page }) => {
   await page.getByLabel('Email').fill(user.email)
   await page.getByLabel('Password').fill(user.password)
   await page.getByRole('button', { name: 'Sign in' }).click()
-  await page.waitForURL('**/sell**', { waitUntil: 'commit' })
+  await page.waitForURL((url) => url.pathname.startsWith('/sell'), { waitUntil: 'commit' })
   const api = page.request
 
   const shop = await api.post('/api/shops', {
