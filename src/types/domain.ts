@@ -37,3 +37,16 @@ export const ShopUpdateSchema = z
   .partial()
   .strict()
 export type ShopUpdateInput = z.infer<typeof ShopUpdateSchema>
+
+/** E.164 Australian mobile: +614XXXXXXXX (docs/api-contracts.md). */
+export const AuMobileSchema = z.string().regex(/^\+614\d{8}$/, 'INVALID_AU_MOBILE')
+
+/** Accepts common local formats (0412 345 678, +61 412…, 61412…) → E.164, or null. */
+export function normaliseAuMobile(input: string): string | null {
+  const digits = input.replace(/[^\d+]/g, '')
+  let national: string | null = null
+  if (/^04\d{8}$/.test(digits)) national = digits.slice(1)
+  else if (/^\+614\d{8}$/.test(digits)) national = digits.slice(3)
+  else if (/^614\d{8}$/.test(digits)) national = digits.slice(2)
+  return national ? `+61${national}` : null
+}
