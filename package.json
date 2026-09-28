@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "type-check": "tsc --noEmit",
     "test:integration": "vitest run --config vitest.integration.config.mts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "fixtures": "tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -19,6 +20,7 @@
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
+    "sharp": "^0.35.5",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -40,6 +42,7 @@
     "postcss": "^8",
     "supabase": "^2.118.0",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.2",

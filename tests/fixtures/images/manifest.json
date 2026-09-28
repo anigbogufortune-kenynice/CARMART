@@ -1,0 +1,166 @@
+{
+  "markerTolerance": 24,
+  "fixtures": {
+    "car-exterior.jpg": {
+      "marker": [
+        220,
+        40,
+        40
+      ],
+      "car": {
+        "isCar": true,
+        "confidence": 0.97,
+        "view": "exterior",
+        "isScreenOrPrint": false,
+        "plateVisible": false,
+        "faceVisible": false
+      },
+      "ai": {
+        "score": 0.02
+      },
+      "note": "passes"
+    },
+    "car-interior.jpg": {
+      "marker": [
+        40,
+        220,
+        40
+      ],
+      "car": {
+        "isCar": true,
+        "confidence": 0.94,
+        "view": "interior",
+        "isScreenOrPrint": false,
+        "plateVisible": false,
+        "faceVisible": false
+      },
+      "ai": {
+        "score": 0.03
+      },
+      "note": "passes (interior counts as a car photo)"
+    },
+    "dog.jpg": {
+      "marker": [
+        40,
+        40,
+        220
+      ],
+      "car": {
+        "isCar": false,
+        "confidence": 0.95,
+        "view": "not_car",
+        "isScreenOrPrint": false,
+        "plateVisible": false,
+        "faceVisible": false
+      },
+      "ai": {
+        "score": 0.02
+      },
+      "note": "D4 rejected: not a car"
+    },
+    "ai-car.jpg": {
+      "marker": [
+        220,
+        220,
+        40
+      ],
+      "car": {
+        "isCar": true,
+        "confidence": 0.96,
+        "view": "exterior",
+        "isScreenOrPrint": false,
+        "plateVisible": false,
+        "faceVisible": false
+      },
+      "ai": {
+        "score": 0.95
+      },
+      "note": "D2 rejected: AI-generated"
+    },
+    "borderline-ai.jpg": {
+      "marker": [
+        220,
+        40,
+        220
+      ],
+      "car": {
+        "isCar": true,
+        "confidence": 0.93,
+        "view": "exterior",
+        "isScreenOrPrint": false,
+        "plateVisible": false,
+        "faceVisible": false
+      },
+      "ai": {
+        "score": 0.7
+      },
+      "note": "D3 in_review"
+    },
+    "screen-photo.jpg": {
+      "marker": [
+        40,
+        220,
+        220
+      ],
+      "car": {
+        "isCar": true,
+        "confidence": 0.9,
+        "view": "exterior",
+        "isScreenOrPrint": true,
+        "plateVisible": false,
+        "faceVisible": false
+      },
+      "ai": {
+        "score": 0.05
+      },
+      "note": "D7 in_review: photo of a screen"
+    },
+    "vendor-error.jpg": {
+      "marker": [
+        255,
+        0,
+        128
+      ],
+      "car": "error",
+      "ai": "error",
+      "note": "both providers fail → retries → D9 in_review"
+    },
+    "with-gps.jpg": {
+      "marker": [
+        230,
+        140,
+        30
+      ],
+      "car": {
+        "isCar": true,
+        "confidence": 0.95,
+        "view": "exterior",
+        "isScreenOrPrint": false,
+        "plateVisible": false,
+        "faceVisible": false
+      },
+      "ai": {
+        "score": 0.02
+      },
+      "note": "passes; carries EXIF GPS that must be stripped"
+    },
+    "tiny.jpg": {
+      "marker": null,
+      "car": null,
+      "ai": null,
+      "note": "D1 rejected: 640×480 is below 800×600"
+    },
+    "animated.webp": {
+      "marker": null,
+      "car": null,
+      "ai": null,
+      "note": "D1 rejected: animated"
+    },
+    "not-an-image.jpg": {
+      "marker": null,
+      "car": null,
+      "ai": null,
+      "note": "D1 rejected: not decodable"
+    }
+  }
+}
