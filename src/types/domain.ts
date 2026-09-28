@@ -146,3 +146,4 @@ export const UploadRequestSchema = z
   .strict()
 export type UploadRequest = z.infer<typeof UploadRequestSchema>
 export type ImageStatus = 'uploaded' | 'checking' | 'passed' | 'rejected' | 'in_review'
+export const PhotoOrderSchema = z.object({ image_ids: z.array(z.string().uuid()).min(1).max(20) }).strict()

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { getMyListing } from '@/services/listing.service'
+import { PhotoUploader } from '@/components/listing/PhotoUploader'
 import { LISTING_STATUS_LABELS } from '@/types/domain'
 import { EditListing } from './EditListing'
 
@@ -10,6 +11,8 @@ export const metadata: Metadata = { title: 'Edit listing | CarMart' }
 export const dynamic = 'force-dynamic'
 
 const EDITABLE = ['draft', 'rejected', 'expired']
+/** Photos can be added while the listing is editable, and to a live listing (docs/api-contracts.md). */
+const PHOTOS_EDITABLE = [...EDITABLE, 'live']
 
 export default async function EditListingPage({ params }: { params: { id: string } }) {
   const db = createServerSupabase()
@@ -35,6 +38,7 @@ export default async function EditListingPage({ params }: { params: { id: string
           This listing can’t be edited while it is {LISTING_STATUS_LABELS[listing.status].toLowerCase()}.
         </p>
       )}
+      <PhotoUploader listingId={listing.id} editable={PHOTOS_EDITABLE.includes(listing.status)} />
     </main>
   )
 }

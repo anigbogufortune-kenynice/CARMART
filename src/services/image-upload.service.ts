@@ -133,3 +133,16 @@ export async function deletePhoto(db: SupabaseClient, listingId: string, imageId
   }
   return ok(null)
 }
+
+/** Set the display order. The list must name exactly the listing's non-deleted photos. */
+export async function reorderPhotos(
+  db: SupabaseClient, listingId: string, imageIds: string[],
+): Promise<Result<{ image_id: string; position: number }[], AppError>> {
+  const { data, error } = await db.rpc('reorder_listing_images', { p_listing_id: listingId, p_image_ids: imageIds })
+  if (error) {
+    const mapped = rpcError(error)
+    if (mapped.code === 'VALIDATION_ERROR') return err({ code: 'VALIDATION_ERROR', message: 'The new order must list every photo exactly once' })
+    return err(mapped)
+  }
+  return ok(((data ?? []) as { id: string; position: number }[]).map((r) => ({ image_id: r.id, position: r.position })))
+}
