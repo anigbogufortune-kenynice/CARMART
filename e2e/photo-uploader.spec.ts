@@ -21,8 +21,7 @@ test('seller uploads photos and sees each check result', async ({ page }) => {
     { name: 'dog.jpg', mimeType: 'image/jpeg', buffer: await markedPhoto(MARKERS.dog) },
   ])
   await expect(page.getByText('2 / 20 photos (min 4)')).toBeVisible({ timeout: 20_000 })
-  await expect.poll(async () => page.locator('main').innerText(), { timeout: 15_000 }).toContain('Checking')
-
+  // pg_net normally wakes the job runner at once; the explicit call covers a missed wake-up.
   await runImageChecks(page.request)
   const photos = page.getByRole('list', { name: 'Photos' })
   await expect(photos.getByText('Passed')).toBeVisible({ timeout: 15_000 })

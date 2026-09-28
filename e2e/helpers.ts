@@ -44,7 +44,7 @@ export async function markedPhoto(marker: [number, number, number]): Promise<Buf
 
 export const MARKERS = { carExterior: [220, 40, 40], dog: [40, 40, 220] } as const satisfies Record<string, [number, number, number]>
 
-/** Run queued image checks now, as pg_net would (CI doesn't configure Vault). */
+/** Run queued image checks now, as pg_net would (a no-op when pg_net already did). */
 export async function runImageChecks(request: import('@playwright/test').APIRequestContext) {
   const res = await request.post('/api/internal/process-image-checks', {
     headers: { Authorization: `Bearer ${process.env.INTERNAL_JOB_SECRET}` }, data: {},
