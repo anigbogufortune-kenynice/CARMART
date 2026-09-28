@@ -47,6 +47,10 @@ As a shop owner, I want to add photos easily and see immediately whether each is
 - src/lib/heic-to-jpeg.test.ts
 - tests/services/image-reorder.test.ts
 
+## Notes from 016
+- Signed upload URLs last 2 h (`expires_in: 7200`); request one per photo just before uploading it.
+- A rejected upload is answered before the body is read. Treat any non-2xx PUT as failed, don't retry on the same request, and ask for a fresh URL (a new `POST …/images`) on retry.
+
 ## Out of Scope
 - Submit button (021)
 - Live-listing photo rules (023)
