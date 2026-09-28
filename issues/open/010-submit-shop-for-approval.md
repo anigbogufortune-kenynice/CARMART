@@ -35,6 +35,7 @@ As a shop owner, I want to submit my shop, so that an admin can approve it and i
 - src/services/shop.service.ts: `submitMyShop`
 - src/app/api/shops/me/submit/route.ts
 - src/app/sell/page.tsx
+- src/components/shop/SellChecklist.tsx: submit / resubmit action + waiting state (client component)
 
 **Test files (in scope):**
 - tests/services/shop-submit.test.ts
