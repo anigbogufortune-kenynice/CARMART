@@ -17,16 +17,16 @@ afterEach(async () => {
 })
 
 async function uploadedPhoto() {
-  const db = await asUser(await createUser({ email: 'a@x.au' }))
-  const shop = await createShop(db, { name: 'Coastal Cars', slug: 'coastal-cars', suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+  const db = await step('user', asUser(await step('createUser', createUser({ email: 'a@x.au' }))))
+  const shop = await step('shop', createShop(db, { name: 'Coastal Cars', slug: 'coastal-cars', suburb: 'Parramatta', state: 'NSW', postcode: '2150' }))
   if (!shop.ok) throw new Error(shop.error.message)
-  const draft = await createDraft(db, {})
+  const draft = await step('draft', createDraft(db, {}))
   if (!draft.ok) throw new Error(draft.error.message)
-  const req = await requestUpload(db, draft.value.id, { mime_type: 'image/jpeg', bytes: PHOTO.length })
+  const req = await step('request', requestUpload(db, draft.value.id, { mime_type: 'image/jpeg', bytes: PHOTO.length }))
   if (!req.ok) throw new Error(req.error.message)
   const token = new URL(req.value.upload_url).searchParams.get('token')!
   const path = `${shop.value.id}/${draft.value.id}/${req.value.image_id}`
-  const up = await db.storage.from('listing-quarantine').uploadToSignedUrl(path, token, PHOTO, { contentType: 'image/jpeg' })
+  const up = await step('signed upload', db.storage.from('listing-quarantine').uploadToSignedUrl(path, token, PHOTO, { contentType: 'image/jpeg' }))
   expect(up.error).toBeNull()
   return { db, path, listingId: draft.value.id, imageId: req.value.image_id }
 }
