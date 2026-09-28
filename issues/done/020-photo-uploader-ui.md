@@ -40,12 +40,17 @@ As a shop owner, I want to add photos easily and see immediately whether each is
 - src/app/api/listings/[id]/images/order/route.ts
 - src/services/image-upload.service.ts: `reorderPhotos`
 - src/app/sell/listings/[id]/page.tsx: embed the uploader
+- supabase/migrations/20260928002000_reorder_photos.sql: `reorder_listing_images` RPC (two-phase: the partial unique position index can't be deferred); position cap removed (gaps accumulate)
+- src/types/domain.ts: PhotoOrderSchema
+- package.json: heic2any; msw (dev)
+- e2e/helpers.ts: `markedPhoto` (unique fixture-marked photos), `runImageChecks` (pokes the job route as pg_net would)
 
 **Test files (in scope):**
 - src/components/listing/PhotoUploader.test.tsx
 - src/components/listing/PhotoStatusChip.test.tsx
 - src/lib/heic-to-jpeg.test.ts
 - tests/services/image-reorder.test.ts
+- e2e/photo-uploader.spec.ts (Step 5 + the full upload journey)
 
 ## Notes from 016
 - Signed upload URLs last 2 h (`expires_in: 7200`); request one per photo just before uploading it.
