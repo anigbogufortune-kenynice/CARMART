@@ -8,7 +8,8 @@
 |---|---|---|---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | YES | public | Supabase project URL | `http://127.0.0.1:54321` | `src/lib/supabase/*` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | YES | public | Supabase anon key (RLS applies) | `eyJ...` | `src/lib/supabase/*` |
-| `NEXT_PUBLIC_SITE_URL` | YES | public | Canonical site origin for links, OG tags and the sitemap | `http://localhost:3000` | `sitemap.ts`, metadata, email links |
+| `NEXT_PUBLIC_SITE_URL` | YES | public | Canonical site origin for links, OG tags and the sitemap (prod placeholder `https://carmart.example`) | `http://localhost:3000` | `sitemap.ts`, metadata, email links |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | YES | public | Support address on the Contact and Privacy pages | `support@carmart.example` | legal pages, footer |
 | `LOG_LEVEL` | NO | server | `debug`, `info`, `warn` or `error` (default `info`) | `info` | `src/lib/logger.ts` |
 
 ## Job runner (`src/server/jobs/**` only; server-only, never `NEXT_PUBLIC_`)
@@ -25,7 +26,7 @@
 | `SIGHTENGINE_API_SECRET` | when `AI_CHECK_PROVIDER=sightengine` | Sightengine API secret | `abc...` |
 | `EMAIL_PROVIDER` | YES | `resend`, or `log` (writes emails to the logger, for local and tests) | `log` |
 | `RESEND_API_KEY` | when `EMAIL_PROVIDER=resend` | Resend API key | `re_...` |
-| `EMAIL_FROM` | when `EMAIL_PROVIDER=resend` | Verified sender, e.g. `CarMart <no-reply@carmart.com.au>` | <!-- TODO: fill in before epics are created: verified sending address --> |
+| `EMAIL_FROM` | when `EMAIL_PROVIDER=resend` | Verified sender (placeholder until the domain is bought) | `CarMart <no-reply@carmart.example>` |
 
 **Rule:** CI, unit, integration and E2E tests always run with `CAR_CHECK_PROVIDER=fake`, `AI_CHECK_PROVIDER=fake` and `EMAIL_PROVIDER=log` (AC-29).
 
@@ -60,6 +61,7 @@ const publicSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   NEXT_PUBLIC_SITE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPPORT_EMAIL: z.string().email(),
 })
 
 export const env = publicSchema

@@ -115,4 +115,15 @@ service/RPC → notifications(pending) → trigger/pg_cron → /api/internal/dis
 - **Database changes:** only through `supabase/migrations/*`, applied by CI (`supabase db push`) on merge to `main`. The seed (`supabase/seed.sql`) runs locally and on staging only.
 - **CI (GitHub Actions):** install → `npm run lint` → `npm run type-check` → `npm run test` (unit) → start local Supabase → integration + RLS tests → Playwright E2E (fake providers) → build. Branch protection on `main` requires this.
 - **Observability:** structured JSON logger (`src/lib/logger.ts`) with a request id, plus Vercel logs. Job failures are logged with the job id, and `image_checks.last_error` is kept for admins.
-- **Production domain and email sender:** <!-- TODO: fill in before epics are created: production domain (e.g. carmart.com.au) and the verified Resend sending address -->
+- **Production domain and email addresses (placeholders):** domain `carmart.example`, sender `CarMart <no-reply@carmart.example>`, support `support@carmart.example`. Code reads these from env and config only (`NEXT_PUBLIC_SITE_URL`, `EMAIL_FROM`, `NEXT_PUBLIC_SUPPORT_EMAIL`), so swapping in the real values needs no code change.
+
+## Launch checklist (human tasks, not agent issues)
+
+- [ ] Buy the real domain; set `NEXT_PUBLIC_SITE_URL`, `EMAIL_FROM` and `NEXT_PUBLIC_SUPPORT_EMAIL`; verify the domain in Resend (SPF/DKIM)
+- [ ] Create the Supabase production and staging projects in `ap-southeast-2`; set the Vault secrets `internal_job_secret` and `app_base_url`
+- [ ] Configure Google OAuth and Twilio (AU sender) in Supabase Auth
+- [ ] Open Anthropic and Sightengine accounts; confirm pricing; set the API keys in Vercel (production only)
+- [ ] Calibrate the ADR-009 thresholds on real Australian car photos and known AI images (run `scripts/smoke-image-vendors.ts`)
+- [ ] Lawyer review of Terms, Privacy, Prohibited Listings and Buyer Safety pages (Australian Privacy Act, Australian Consumer Law)
+- [ ] Create the first admin account via SQL
+- [ ] Protect `main` on GitHub (require PR + CI)

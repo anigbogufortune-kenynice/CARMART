@@ -97,4 +97,4 @@ A **suspended** profile (`status = 'suspended'`) gets 403 `ACCOUNT_SUSPENDED` on
 - All photo metadata (EXIF, GPS, XMP) is stripped before any image becomes public (AC-25).
 - The seller's phone is shown only when they opt in, and only to signed-in users (AC-48).
 - Data is hosted in the Sydney region (`ap-southeast-2`).
-- Account deletion is out of scope for v1 self-service. It's handled by request via the Contact page, and an admin runs the documented deletion procedure. <!-- TODO: fill in before epics are created: confirm the support email address shown on the Contact and Privacy pages. -->
+- Account deletion is out of scope for v1 self-service. It's handled by request via the Contact page, and an admin runs the documented deletion procedure. Support address: `support@carmart.example` (**placeholder**, replace before launch; see the launch checklist in `docs/architecture.md`).
