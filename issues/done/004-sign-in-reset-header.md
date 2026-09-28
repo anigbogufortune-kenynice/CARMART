@@ -60,7 +60,7 @@ Test 3: render /verify-email with `?email=a@b.au` → clicking 'Resend email' ca
 File:   src/app/(auth)/verify-email/page.tsx
 
 Step 4: Password reset both modes
-Test 4: request mode calls `resetPasswordForEmail(email, { redirectTo: '<origin>/auth/reset' })`; update mode (a session exists after the link) calls `updateUser({ password })` and rejects passwords < 10 chars
+Test 4: request mode calls `resetPasswordForEmail(email, { redirectTo: "<origin>/auth/callback?next=/auth/reset" })` (PKCE: the link must be exchanged by the callback); update mode (a session exists after the link) calls `updateUser({ password })` and rejects passwords < 10 chars
 File:   src/app/auth/reset/page.tsx
 
 Step 5: Header + layout
