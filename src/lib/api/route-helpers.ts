@@ -52,6 +52,13 @@ type Infer<S> = S extends ZodType ? z.infer<S> : undefined
 const fail = (code: string, message: string, extra: Record<string, unknown> = {}) =>
   NextResponse.json({ error: { code, message, ...extra } }, { status: statusFor(code) })
 
+/** An issue message written as an error code (e.g. 'INVALID_VIN') becomes the response code. */
+function zodFail(error: z.ZodError) {
+  const coded = error.issues.find((i) => /^[A-Z][A-Z0-9_]+$/.test(i.message))
+  if (coded) return fail(coded.message, `${coded.path.join('.') || 'body'}: ${coded.message}`)
+  return fail('VALIDATION_ERROR', zodMessage(error))
+}
+
 function zodMessage(error: z.ZodError): string {
   const first = error.issues[0]
   const path = first?.path.join('.') || 'body'
@@ -75,13 +82,13 @@ export function withRoute<BS extends ZodType | undefined = undefined, QS extends
           return fail('BAD_REQUEST', 'Malformed JSON body')
         }
         const parsed = options.body.safeParse(raw)
-        if (!parsed.success) return fail('VALIDATION_ERROR', zodMessage(parsed.error))
+        if (!parsed.success) return zodFail(parsed.error)
         body = parsed.data
       }
       let query: unknown = undefined
       if (options.query) {
         const parsed = options.query.safeParse(Object.fromEntries(req.nextUrl.searchParams))
-        if (!parsed.success) return fail('VALIDATION_ERROR', zodMessage(parsed.error))
+        if (!parsed.success) return zodFail(parsed.error)
         query = parsed.data
       }
 

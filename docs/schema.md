@@ -178,10 +178,12 @@
 | `expiry_reminder_sent_at` | `timestamptz` | YES | null | |
 | `sold_at` | `timestamptz` | YES | null | |
 | `version` | `int` | NO | `1` | Incremented on every status transition (optimistic lock) |
-| `search_vector` | `tsvector` | YES | — | Generated: make, model, other names, description (`english` config) |
+| `search_vector` | `tsvector` | YES | — | Maintained by the `listings_before_write` trigger (a generated column can't read make/model names): make, model, other names (weight A), description (weight B), `english` config |
 | `created_at` / `updated_at` | `timestamptz` | NO | `now()` | |
 
-**Checks:** exactly one of (`make_id`, `make_other`) is non-null; exactly one of (`model_id`, `model_other`) is non-null (a model can be "Other" when the make is known).
+**Drafts may be incomplete:** the car fields (`make_*`, `model_*`, `year`, `odometer_km`, `price_cents`, `body_type`, `transmission`, `fuel`, `colour`, `vin`, `state`, `suburb`, `postcode`) are nullable columns; the "NO" above describes every status except `draft`, enforced by `listings_complete_unless_draft`.
+
+**Checks:** never both of (`make_id`, `make_other`) or (`model_id`, `model_other`); outside `draft`, exactly one of each pair (a model can be "Other" when the make is known). `listings_postcode_matches_state`, `listings_vin_format`. Trigger: year ≤ current year + 1, `model_id` belongs to `make_id`, `currency` copied from the shop on insert.
 
 **Indexes:**
 - `listings_live_vin_key` **unique** on `vin` `WHERE status = 'live'`: at most one live listing per VIN (INV-L1). Duplicates among `checking`/`in_review` are allowed so they can be routed to admin review (BR-L7)
