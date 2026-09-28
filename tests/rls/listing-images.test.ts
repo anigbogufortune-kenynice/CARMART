@@ -7,6 +7,11 @@ import { adminDb, anonDb, asUser, createUser, resetDb } from '../helpers/supabas
 
 const PHOTO = readFileSync('tests/fixtures/images/car-exterior.jpg')
 
+/** Fail fast with the step name instead of a bare 30 s timeout. */
+function step<T>(name: string, p: PromiseLike<T>, ms = 8000): Promise<T> {
+  return Promise.race([Promise.resolve(p), new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`step hung: ${name}`)), ms))])
+}
+
 afterEach(async () => {
   await resetDb()
 })
@@ -44,14 +49,16 @@ describe('quarantine storage and photo rows', () => {
   })
 
   it('clients cannot write listing-public, or write image_checks and upload_events directly', async () => {
-    const { db, listingId, imageId } = await uploadedPhoto()
-    await completeUpload(db, listingId, imageId)
-    expect((await db.storage.from('listing-public').upload(`${listingId}/x-sm.webp`, PHOTO, { contentType: 'image/webp' })).error).not.toBeNull()
-    expect((await db.from('image_checks').insert({ image_id: imageId })).error).not.toBeNull()
-    expect((await db.from('upload_events').insert({ shop_id: listingId })).error).not.toBeNull()
-    expect((await db.from('listing_images').update({ status: 'passed' }).eq('id', imageId)).error).not.toBeNull()
-    const own = await db.from('image_check_status').select('state').eq('image_id', imageId)
+    const { db, listingId, imageId } = await step('setup', uploadedPhoto(), 20000)
+    await step('complete', completeUpload(db, listingId, imageId))
+    const pub = await step('public upload', db.storage.from('listing-public').upload(`${listingId}/x-sm.webp`, PHOTO, { contentType: 'image/webp' }))
+    expect(pub.error).not.toBeNull()
+    expect((await step('insert check', db.from('image_checks').insert({ image_id: imageId }))).error).not.toBeNull()
+    expect((await step('insert event', db.from('upload_events').insert({ shop_id: listingId }))).error).not.toBeNull()
+    expect((await step('update status', db.from('listing_images').update({ status: 'passed' }).eq('id', imageId)))).toMatchObject({ error: expect.anything() })
+    const own = await step('view', db.from('image_check_status').select('state').eq('image_id', imageId))
     expect(own.data).toEqual([{ state: 'queued' }])
-    expect((await adminDb().from('image_checks').select('id').eq('image_id', imageId)).data).toHaveLength(1)
+    expect((await step('admin read', adminDb().from('image_checks').select('id').eq('image_id', imageId))).data).toHaveLength(1)
   })
+
 })
