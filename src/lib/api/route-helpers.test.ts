@@ -106,6 +106,12 @@ describe('withRoute: results and failures', () => {
     expect(r.status).toBe(204)
   })
 
+  it('paginated routes put items in data and the page alongside', async () => {
+    const page = { number: 2, size: 24, total: 30 }
+    const r = await json(await withRoute({ auth: 'user', paginated: true }, async () => ok({ items: [{ id: 1 }], page }))(get(), ctx))
+    expect(r.body).toEqual({ data: [{ id: 1 }], page })
+  })
+
   it('500 with a request id on unexpected throws, logged once, no details leaked', async () => {
     const r = await json(await withRoute({ auth: 'user' }, async () => { throw new Error('db password is hunter2') })(get(), ctx))
     expect(r.status).toBe(500)
