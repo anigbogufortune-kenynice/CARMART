@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ShopDecisionButtons } from '@/components/admin/ShopDecisionButtons'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { listQueue, type ShopQueueItem } from '@/services/moderation.service'
 
@@ -28,6 +29,7 @@ export default async function AdminShopsPage({ searchParams }: { searchParams: {
                 {s.suburb} {s.state} · submitted {ago(s.submitted_at)} · owner {s.owner_name} ·{' '}
                 {s.phone_verified ? 'phone verified ✓' : 'phone NOT verified'}
               </p>
+              <ShopDecisionButtons shopId={s.id} shopName={s.name} />
             </li>
           ))}
         </ul>
