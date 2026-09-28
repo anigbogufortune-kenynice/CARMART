@@ -39,10 +39,16 @@ As a shop owner, I want to upload photos of my car, so that they can be checked 
 - src/app/api/listings/[id]/images/[imageId]/complete/route.ts
 - src/app/api/listings/[id]/images/[imageId]/route.ts: DELETE
 - src/app/api/listings/[id]/images/status/route.ts
+- supabase/migrations: also `delete_listing_image` RPC (owner soft delete with the live-listing guard; no client grant on deleted_at)
+- src/lib/uuid.ts: `isUuid` for route params
+- src/types/domain.ts: UploadRequestSchema, ImageStatus
+- docs/api-contracts.md, docs/schema.md: signed-URL lifetime, quarantine_path format, owner grants
 
 **Test files (in scope):**
 - tests/services/image-upload.test.ts
 - tests/rls/listing-images.test.ts
+- src/lib/uuid.test.ts
+- e2e/photo-upload.spec.ts (Step 5 routes)
 
 ## Out of Scope
 - Running the checks (017–019)

@@ -218,7 +218,7 @@
 | `listing_id` | `uuid` | NO | — | FK → `listings.id` on delete cascade |
 | `shop_id` | `uuid` | NO | — | Denormalised for RLS and cross-shop pHash checks |
 | `position` | `smallint` | NO | — | 0-based display order, unique per listing among non-deleted rows |
-| `quarantine_path` | `text` | NO | — | `listing-quarantine/{shop_id}/{listing_id}/{image_id}` |
+| `quarantine_path` | `text` | NO | — | Object name in the `listing-quarantine` bucket: `{shop_id}/{listing_id}/{image_id}` (unique) |
 | `public_paths` | `jsonb` | YES | null | `{ "sm": "...", "md": "...", "lg": "..." }` after passing |
 | `status` | `image_status` | NO | `'uploaded'` | |
 | `status_reason` | `text` | YES | null | Shown to the seller when rejected or in review |
@@ -241,8 +241,9 @@
 | Public reads passed images of publicly visible listings | SELECT | `status = 'passed' AND deleted_at IS NULL AND listing is publicly visible` |
 | Owner reads own | SELECT | `owns_shop(shop_id)` |
 | Admins read all | SELECT | `is_admin()` |
-| Owner inserts via upload service | INSERT | `owns_shop(shop_id) AND status = 'uploaded'` |
-| Owner soft-deletes / reorders | UPDATE | `owns_shop(shop_id)`. Column grant: `position, deleted_at` |
+| Owner inserts via upload service | INSERT | only through the RPC `request_image_upload` (no client INSERT grant; the RPC enforces the photo cap and upload limit) |
+| Owner reorders | UPDATE | `owns_shop(shop_id)`. Column grant: `position` only |
+| Owner soft-deletes | — | only through the RPC `delete_listing_image` (keeps ≥ 4 passed photos on a live listing) |
 | Worker updates results | UPDATE | service role only |
 | Admins decide reviews | UPDATE | `is_admin()` |
 
