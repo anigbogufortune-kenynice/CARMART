@@ -59,3 +59,36 @@ export async function listQueue(db: SupabaseClient, queue: QueueName, page = 1):
       return err({ code: 'NOT_FOUND', message: `Unknown queue: ${queue}` })
   }
 }
+
+const DECISION_ERRORS: Record<string, AppError> = {
+  FORBIDDEN: { code: 'FORBIDDEN', message: 'Admins only' },
+  NOT_FOUND: { code: 'NOT_FOUND', message: 'Not found' },
+  INVALID_STATE: { code: 'INVALID_STATE', message: 'This item has already been decided' },
+  REASON_REQUIRED: { code: 'REASON_REQUIRED', message: 'Give a reason of 5–500 characters' },
+}
+
+function mapDecisionError(message: string): AppError {
+  const code = Object.keys(DECISION_ERRORS).find((c) => message.includes(c))
+  return code ? DECISION_ERRORS[code] : { code: 'INTERNAL_ERROR', message }
+}
+
+export type ShopDecision = 'approve' | 'reject'
+
+/** Approve or reject a pending shop (audit row + owner email written atomically in SQL). */
+export async function decideShop(
+  db: SupabaseClient,
+  shopId: string,
+  decision: ShopDecision,
+  reason?: string,
+): Promise<Result<{ id: string; status: string }, AppError>> {
+  if (decision === 'reject' && (!reason || reason.trim().length < 5 || reason.trim().length > 500)) {
+    return err(DECISION_ERRORS.REASON_REQUIRED)
+  }
+  const { data, error } =
+    decision === 'approve'
+      ? await db.rpc('admin_approve_shop', { p_shop_id: shopId })
+      : await db.rpc('admin_reject_shop', { p_shop_id: shopId, p_reason: reason })
+  if (error) return err(mapDecisionError(error.message))
+  const shop = data as { id: string; status: string }
+  return ok({ id: shop.id, status: shop.status })
+}

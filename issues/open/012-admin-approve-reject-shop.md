@@ -39,10 +39,12 @@ As an admin, I want to approve or reject shops with a reason, so that only real 
 - src/server/jobs/notification-dispatch/templates.ts: finalise shop_approved/shop_rejected copy
 - src/components/admin/ReasonDialog.tsx
 - src/app/admin/shops/page.tsx
+- src/components/admin/ShopDecisionButtons.tsx: approve/reject actions (client)
 
 **Test files (in scope):**
 - tests/services/moderation-shops.test.ts
 - src/components/admin/ReasonDialog.test.tsx
+- e2e/shop-approval.spec.ts
 
 ## Out of Scope
 - Suspend/unsuspend (045)
