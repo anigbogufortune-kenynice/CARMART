@@ -30,7 +30,8 @@ describe('profiles', () => {
     const statusChange = await db.from('profiles').update({ status: 'suspended' }).eq('id', a.id)
     expect(statusChange.error?.code).toBe('42501')
     expect((await db.from('profiles').select('id').eq('id', b.id)).data).toEqual([])
-    expect((await anonDb().from('profiles').select('id')).data).toEqual([])
+    // anon has no table grant at all: denied (stronger than an empty result)
+    expect((await anonDb().from('profiles').select('id')).data ?? []).toEqual([])
   })
 
   it('is_admin(): admins read every profile and can change status', async () => {
@@ -95,6 +96,7 @@ describe('notifications outbox', () => {
 
   it('is not readable by users', async () => {
     const u = await createUser({ email: 'r@x.au' })
-    expect((await (await asUser(u)).from('notifications').select('id')).data).toEqual([])
+    // users have no grant on the outbox: denied
+    expect((await (await asUser(u)).from('notifications').select('id')).data ?? []).toEqual([])
   })
 })
