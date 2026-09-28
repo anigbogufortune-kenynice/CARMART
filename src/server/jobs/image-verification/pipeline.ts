@@ -4,16 +4,16 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/logger'
-import { jobsEnv, type JobsEnv } from '../env'
+import { jobsEnv } from '../env'
 import { adminClient } from '../supabase-admin'
 import { DEFAULT_DECISION_SETTINGS, decide, type DecisionSettings } from './decide'
 import { metadataSignals, normalise, phash, stripAndEncode, validate, type MetadataSignals } from './process-image'
-import { FakeAiCheckProvider, FakeCarCheckProvider } from './providers/fake.provider'
-import type { AiCheckProvider, AiCheckResult, CarCheckProvider, CarCheckResult } from './providers/types'
+import { getProviders, type Providers } from './providers'
+import type { AiCheckResult, CarCheckResult } from './providers/types'
 import { publishVariants, removeVariants, unpublishImage, type PublicPaths } from './publish'
 import type { AppError, Result } from '@/types/result'
 
-export type Providers = { car: CarCheckProvider; ai: AiCheckProvider }
+export type { Providers }
 export type PipelineResult = { processed: number; requeued: number; skipped: number }
 type Settings = DecisionSettings & { phashMaxDistance: number }
 
@@ -187,15 +187,7 @@ export async function processNextJobs(
   return result
 }
 
-/** Provider selection from the job environment. Real vendors arrive in issue 019. */
-export function providersFromEnv(env: JobsEnv): Providers {
-  if (env.CAR_CHECK_PROVIDER !== 'fake' || env.AI_CHECK_PROVIDER !== 'fake') {
-    throw new Error('Only the fake image-check providers are available until issue 019')
-  }
-  return { car: new FakeCarCheckProvider(), ai: new FakeAiCheckProvider() }
-}
-
 /** Entry point for POST /api/internal/process-image-checks. */
 export async function runImageChecks(limit: number, jobId?: string): Promise<PipelineResult> {
-  return processNextJobs(adminClient(), limit, providersFromEnv(jobsEnv()), jobId)
+  return processNextJobs(adminClient(), limit, getProviders(jobsEnv()), jobId)
 }
