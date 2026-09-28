@@ -4,7 +4,7 @@ import { isPostcodeInState, type AuState } from '@/lib/au-postcode'
 import {
   ListingDraftSchema, ListingPatchSchema, type ListingDraftInput, type ListingPatchInput, type ListingStatus,
 } from '@/types/domain'
-import { err, ok, type AppError, type Result } from '@/types/result'
+import { err, ok, type AppError, type Page, type Result } from '@/types/result'
 
 /**
  * Listing module: reference data now; drafts, submission and lifecycle arrive in later issues.
@@ -187,4 +187,51 @@ export async function deleteDraft(db: SupabaseClient, id: string): Promise<Resul
   if (error) return err(mapWriteError(error))
   if (!count) return err({ code: 'INVALID_STATE', message: 'Only drafts can be deleted' })
   return ok(null)
+}
+
+// ── Owner dashboard (GET /api/shops/me/listings) ─────────────────────────────────────────────
+
+/** A listing plus its computed title (`{year} {make} {model}`, docs/systems/listing-lifecycle.md). */
+export type OwnListing = Listing & { title: string }
+
+const PAGE_SIZE = 24
+const OWN_COLUMNS = `${LISTING_COLUMNS},make:vehicle_makes(name),model:vehicle_models(name)`
+
+type OwnRow = Listing & { make: { name: string } | null; model: { name: string } | null }
+
+function withTitle(row: OwnRow): OwnListing {
+  const { make, model, ...listing } = row
+  const parts = [listing.year, listing.make_other ?? make?.name, listing.model_other ?? model?.name].filter(Boolean)
+  return { ...listing, title: parts.length ? parts.join(' ') : 'Untitled car' }
+}
+
+/** The caller's listings, most recently updated first, optionally filtered by status. */
+export async function listMine(
+  db: SupabaseClient,
+  opts: { page: number; status?: ListingStatus },
+): Promise<Result<Page<OwnListing>, AppError>> {
+  const shop = await callerShop(db)
+  if (!shop.ok) return shop
+  const from = (opts.page - 1) * PAGE_SIZE
+  let query = db.from('listings').select(OWN_COLUMNS, { count: 'exact' }).eq('shop_id', shop.value.id)
+  if (opts.status) query = query.eq('status', opts.status)
+  const { data, error, count } = await query
+    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .range(from, from + PAGE_SIZE - 1)
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  return ok({
+    items: ((data ?? []) as unknown as OwnRow[]).map(withTitle),
+    page: { number: opts.page, size: PAGE_SIZE, total: count ?? 0 },
+  })
+}
+
+/** One of the caller's listings (any status), with its title. */
+export async function getMyListing(db: SupabaseClient, id: string): Promise<Result<OwnListing, AppError>> {
+  const shop = await callerShop(db)
+  if (!shop.ok) return shop.error.code === 'SHOP_NOT_FOUND' ? err({ code: 'NOT_FOUND', message: 'Listing not found' }) : shop
+  const { data, error } = await db.from('listings').select(OWN_COLUMNS).eq('id', id).eq('shop_id', shop.value.id).maybeSingle()
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  if (!data) return err({ code: 'NOT_FOUND', message: 'Listing not found' })
+  return ok(withTitle(data as unknown as OwnRow))
 }

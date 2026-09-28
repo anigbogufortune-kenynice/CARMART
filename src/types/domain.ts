@@ -123,3 +123,17 @@ export const ListingPatchSchema = z
   .strict()
   .superRefine(crossChecks(false))
 export type ListingPatchInput = z.infer<typeof ListingPatchSchema>
+
+/** Display labels for listing enums. */
+export const BODY_TYPE_LABELS: Record<(typeof BODY_TYPES)[number], string> = {
+  sedan: 'Sedan', hatchback: 'Hatchback', suv: 'SUV', wagon: 'Wagon', coupe: 'Coupe',
+  convertible: 'Convertible', ute: 'Ute', people_mover: 'People mover',
+}
+export const TRANSMISSION_LABELS: Record<(typeof TRANSMISSIONS)[number], string> = { automatic: 'Automatic', manual: 'Manual' }
+export const FUEL_LABELS: Record<(typeof FUELS)[number], string> = {
+  petrol: 'Petrol', diesel: 'Diesel', hybrid: 'Hybrid', plug_in_hybrid: 'Plug-in hybrid', electric: 'Electric', lpg: 'LPG',
+}
+export const LISTING_STATUS_LABELS: Record<ListingStatus, string> = {
+  draft: 'Draft', checking: 'Checking photos', in_review: 'In review', rejected: 'Needs changes',
+  live: 'Live', sold: 'Sold', expired: 'Expired', removed: 'Removed',
+}

@@ -36,10 +36,14 @@ As a shop owner, I want a clear form for my car's details, so that listing is qu
 - src/app/sell/listings/new/page.tsx
 - src/app/sell/listings/[id]/page.tsx
 - src/components/listing/ListingForm.tsx: includes the dependent make/model select (internal component)
+- src/app/sell/listings/new/NewListing.tsx, src/app/sell/listings/[id]/EditListing.tsx: client wrappers (navigation/state) for the server pages
+- src/lib/api/route-helpers.ts: `paginated` option → `{ data: items, page }`; src/types/result.ts: `Page<T>`
+- src/types/domain.ts: display labels for body type, transmission, fuel, status
 
 **Test files (in scope):**
 - src/components/listing/ListingForm.test.tsx
 - tests/services/listing-mine.test.ts
+- e2e/listing-form.spec.ts (Step 4 page checks)
 
 ## Out of Scope
 - Photos (016/020)

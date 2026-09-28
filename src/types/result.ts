@@ -10,3 +10,6 @@ export type Result<T, E = AppError> =
 export const ok = <T>(value: T): Result<T, never> => ({ ok: true, value })
 
 export const err = <E = AppError>(error: E): Result<never, E> => ({ ok: false, error })
+
+/** A page of results (paginated routes respond `{ data: items, page }`). */
+export type Page<T> = { items: T[]; page: { number: number; size: number; total: number } }

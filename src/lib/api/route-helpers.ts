@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import type { ZodType, z } from 'zod'
 import { logger } from '@/lib/logger'
 import { createServerSupabase } from '@/lib/supabase/server'
-import type { AppError, Result } from '@/types/result'
+import type { AppError, Page, Result } from '@/types/result'
 
 /**
  * Shared route-handler pipeline (CLAUDE.md: Zod → auth → service → response).
@@ -45,6 +45,8 @@ type Options<BS extends ZodType | undefined, QS extends ZodType | undefined> = {
   body?: BS
   query?: QS
   successStatus?: 200 | 201 | 202 | 204
+  /** The handler returns `Page<T>`; respond `{ data: items, page }` (docs/api-contracts.md pagination). */
+  paginated?: boolean
 }
 
 type Infer<S> = S extends ZodType ? z.infer<S> : undefined
@@ -112,6 +114,10 @@ export function withRoute<BS extends ZodType | undefined = undefined, QS extends
       if (!result.ok) return fail(result.error.code, result.error.message)
       const status = options.successStatus ?? 200
       if (status === 204) return new NextResponse(null, { status: 204 })
+      if (options.paginated) {
+        const { items, page } = result.value as Page<unknown>
+        return NextResponse.json({ data: items, page }, { status })
+      }
       return NextResponse.json({ data: result.value }, { status })
     } catch (e) {
       logger.error('route handler failed', {
