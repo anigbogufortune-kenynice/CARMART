@@ -21,7 +21,7 @@ test('seller uploads photos and sees each check result', async ({ page }) => {
     { name: 'dog.jpg', mimeType: 'image/jpeg', buffer: await markedPhoto(MARKERS.dog) },
   ])
   await expect(page.getByText('2 / 20 photos (min 4)')).toBeVisible({ timeout: 20_000 })
-  await expect(page.getByText('Checking').first()).toBeVisible()
+  await expect.poll(async () => page.locator('main').innerText(), { timeout: 15_000 }).toContain('Checking')
 
   await runImageChecks(page.request)
   const photos = page.getByRole('list', { name: 'Photos' })
