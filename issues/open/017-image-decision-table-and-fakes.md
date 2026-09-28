@@ -27,7 +27,7 @@ As the platform, I want image decisions to be predictable and fully tested, so t
 ## Acceptance Criteria
 - [ ] `decide(inputs, settings)` implements D1–D10 exactly: the worst outcome wins; reasons collected; the first rejected reason is the seller reason
 - [ ] Band edges: ai 0.49 → pass, 0.50 → review, 0.89 → review, 0.90 → reject; car false @ 0.84 → review, @ 0.85 → reject; car true @ 0.79 → review, @ 0.80 → pass
-- [ ] Fake providers return results from `tests/fixtures/images/manifest.json` keyed by the SHA-256 of the file bytes; an unknown image → pass in local mode, throws `UNKNOWN_FIXTURE` when `FAKE_PROVIDER_STRICT=1` (CI)
+- [ ] Fake providers return results from `tests/fixtures/images/manifest.json` keyed by each fixture's top-left marker colour (survives the pipeline's resize/re-encode; a byte hash would not); an unknown image → pass in local mode, throws `UNKNOWN_FIXTURE` when `FAKE_PROVIDER_STRICT=1` (CI)
 - [ ] `scripts/generate-fixtures.ts` deterministically creates the fixtures with sharp: car-exterior.jpg, car-interior.jpg, dog.jpg, ai-car.jpg, borderline-ai.jpg, screen-photo.jpg, vendor-error.jpg, tiny.jpg (640×480), with-gps.jpg (EXIF GPS), animated.webp, not-an-image.jpg (text bytes), and writes manifest.json
 
 ## Files to Modify
@@ -62,7 +62,7 @@ Test 3: ai 0.95 + car false 0.99 → rejected, and the reasons array has both, w
 File:   decide.ts
 
 Step 4: Fixtures generator + manifest
-Test 4: `npm run fixtures` creates 11 files; running it twice yields identical SHA-256 hashes (deterministic)
+Test 4: `npm run fixtures` creates 11 files; running it twice yields byte-identical files (deterministic)
 File:   scripts/generate-fixtures.ts, tests/fixtures/images/manifest.json, package.json
 
 Step 5: Fake providers
