@@ -52,15 +52,15 @@ describe('quarantine storage and photo rows', () => {
     expect((await step('admin read', adminDb().from('image_checks').select('id').eq('image_id', imageId))).data).toHaveLength(1)
   })
 
-  // Denied uploads make the local storage server stall its next request for a while, so every
-  // denied-upload assertion lives here, at the very end of the file.
+  // A denied direct upload of a large body stalls the local storage server (it rejects before reading
+  // the body), so the probe uses a tiny body and the denied-upload checks sit at the end of the file.
   it('no foreign upload URLs, no overwrite through a re-used token, no client writes to listing-public', async () => {
     const { db, path, token, listingId } = await uploadedPhoto()
     const other = await asUser(await createUser({ email: 'b@x.au' }))
     expect((await step('foreign sign', other.storage.from('listing-quarantine').createSignedUploadUrl(path))).error).not.toBeNull()
     const again = await step('reuse token', db.storage.from('listing-quarantine').uploadToSignedUrl(path, token, PHOTO, { contentType: 'image/jpeg' }))
     expect(again.error).not.toBeNull()
-    const pub = await step('public upload', db.storage.from('listing-public').upload(`${listingId}/x-sm.webp`, PHOTO, { contentType: 'image/webp' }), 20000)
+    const pub = await step('public upload', db.storage.from('listing-public').upload(`${listingId}/x-sm.webp`, Buffer.from('RIFF0000WEBP'), { contentType: 'image/webp' }), 20000)
     expect(pub.error).not.toBeNull()
   })
 })
