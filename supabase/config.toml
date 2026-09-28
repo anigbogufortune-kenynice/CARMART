@@ -257,15 +257,17 @@ otp_expiry = 3600
 # Allow/disallow new user signups via SMS to your project.
 enable_signup = false
 # If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = false
+enable_confirmations = true
 # Template for sending OTP to users
 template = "Your code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
 
 # Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
+# Local/CI only: fixed OTPs for test numbers, so no SMS is ever sent (docs/env.md).
+[auth.sms.test_otp]
+61400000000 = "123456"
+61400000001 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -286,11 +288,13 @@ max_frequency = "5s"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
-# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+# Enabled locally with dummy, non-secret values only because GoTrue needs *a* provider
+# configured before it will send (or test-skip) a phone OTP. Only the test_otp numbers
+# above are used locally/in CI; production Twilio is configured in the Supabase dashboard.
+enabled = true
+account_sid = "AC00000000000000000000000000000000"
+message_service_sid = "MG00000000000000000000000000000000"
+auth_token = "local-dummy-token-not-a-secret"
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]

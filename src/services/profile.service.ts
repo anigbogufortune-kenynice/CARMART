@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
+import { AuMobileSchema } from '@/types/domain'
 import { err, ok, type AppError, type Result } from '@/types/result'
 
 export type Me = {
@@ -44,4 +45,41 @@ export async function updateDisplayName(db: SupabaseClient, displayName: string)
   const { data, error } = await db.from('profiles').update({ display_name: parsed.data }).eq('id', id).select('display_name').single()
   if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
   return ok({ display_name: data.display_name })
+}
+
+/** Send an SMS code to an Australian mobile (sellers only; not a sign-in method). */
+export async function sendPhoneCode(db: SupabaseClient, phone: string): Promise<Result<{ sent: true }, AppError>> {
+  if (!AuMobileSchema.safeParse(phone).success) {
+    return err({ code: 'INVALID_AU_MOBILE', message: 'Enter an Australian mobile number (04…)' })
+  }
+  const inUse = await db.rpc('phone_in_use', { p_phone: phone })
+  if (inUse.error) return err({ code: 'INTERNAL_ERROR', message: inUse.error.message })
+  if (inUse.data === true) return err({ code: 'PHONE_IN_USE', message: 'That number is already verified on another account' })
+
+  const allowed = await db.rpc('record_phone_code_request')
+  if (allowed.error) return err({ code: 'INTERNAL_ERROR', message: allowed.error.message })
+  if (allowed.data !== true) return err({ code: 'RATE_LIMITED', message: 'Too many codes requested — try again in an hour' })
+
+  const { error } = await db.auth.updateUser({ phone })
+  if (error) {
+    if (/already|registered|exists/i.test(error.message)) {
+      return err({ code: 'PHONE_IN_USE', message: 'That number is already verified on another account' })
+    }
+    if (/security purposes|rate limit|too many/i.test(error.message)) {
+      return err({ code: 'RATE_LIMITED', message: 'Please wait a moment before requesting another code' })
+    }
+    return err({ code: 'INTERNAL_ERROR', message: error.message })
+  }
+  return ok({ sent: true })
+}
+
+/** Verify the 6-digit code; a DB trigger then copies the confirmed phone into profiles. */
+export async function verifyPhoneCode(db: SupabaseClient, phone: string, code: string): Promise<Result<{ phone_verified: true }, AppError>> {
+  if (!AuMobileSchema.safeParse(phone).success) {
+    return err({ code: 'INVALID_AU_MOBILE', message: 'Enter an Australian mobile number (04…)' })
+  }
+  if (!/^\d{6}$/.test(code)) return err({ code: 'INVALID_CODE', message: 'Enter the 6-digit code' })
+  const { error } = await db.auth.verifyOtp({ phone, token: code, type: 'phone_change' })
+  if (error) return err({ code: 'INVALID_CODE', message: 'That code isn’t right' })
+  return ok({ phone_verified: true })
 }

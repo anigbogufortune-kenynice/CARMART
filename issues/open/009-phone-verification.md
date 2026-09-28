@@ -39,7 +39,8 @@ As a shop owner, I want to verify my mobile, so that I can submit my shop for ap
 - src/app/api/profile/phone/send-code/route.ts
 - src/app/api/profile/phone/verify/route.ts
 - src/app/sell/phone/page.tsx
-- src/types/domain.ts: AuMobileSchema
+- src/types/domain.ts: AuMobileSchema, normaliseAuMobile
+- supabase/config.toml: `[auth.sms] enable_confirmations = true` (otherwise GoTrue auto-confirms phone changes), test_otp numbers, Twilio enabled with dummy non-secret values (GoTrue needs a provider configured even for test numbers)
 
 **Test files (in scope):**
 - tests/services/phone.test.ts
