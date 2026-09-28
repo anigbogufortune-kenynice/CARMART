@@ -42,7 +42,7 @@ For every step in ## Implementation Plan:
 - Spec docs are read-only unless the issue says to update them
 - Never delete existing tests
 - No `any`, `@ts-ignore`, or unsafe casts
-- No RLS bypass — no service role in app code
+- No RLS bypass — no service role in app code (sole exception: `src/server/jobs/**`, ADR-006)
 - No hardcoded secrets
 - Bugs found outside scope → write to issues/discovered/ and continue
 - Cannot complete without out-of-scope changes → output [BLOCKED: reason]

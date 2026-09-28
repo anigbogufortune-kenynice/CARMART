@@ -29,15 +29,22 @@ and contains all related logic internally. Do not create shallow utility files
 or fragment logic across many small files.
 
 ## Module Map
-- `src/services/[name].service.ts` — business logic, one service per domain
-- `src/app/api/[name]/route.ts`    — Next.js route handlers only, no logic
-- `src/lib/supabase/`              — Supabase client (server + browser)
-- `src/lib/env.ts`                 — validated environment variables (Zod)
-- `src/lib/utils.ts`               — shared utilities (keep minimal)
-- `src/components/`                — UI components, co-located tests
-- `src/types/`                     — shared TypeScript types (`result.ts` = Result<T, AppError>)
-- `supabase/config.toml`           — Supabase local stack config
-- `supabase/migrations/`           — database migrations
+- `src/app/**/page.tsx`                — pages (RSC by default); page map in docs/architecture.md
+- `src/app/api/**/route.ts`            — route handlers only: Zod → auth → service → response. No logic
+- `src/app/api/internal/**/route.ts`   — job endpoints called by Postgres (Bearer INTERNAL_JOB_SECRET)
+- `src/services/[name].service.ts`     — business logic, one service per domain, ≤ 8 exports
+- `src/server/jobs/**`                 — background jobs (image verification, email dispatch, unpublish).
+                                         ONLY place allowed to create a service-role client (ADR-006)
+- `src/lib/supabase/`                  — user-scoped Supabase clients (server, browser, middleware)
+- `src/lib/api/route-helpers.ts`       — shared handler plumbing (parse, auth, Result → HTTP)
+- `src/lib/env.ts` / `src/lib/logger.ts` — validated env (Zod) / structured logger
+- `src/lib/vin.ts`, `src/lib/au-postcode.ts` — domain validation
+- `src/components/`                    — UI components, co-located tests
+- `src/types/`                         — `result.ts` (Result<T, AppError>), `domain.ts` (enums + Zod schemas)
+- `supabase/migrations/`               — SQL migrations (`20260928NNNN00_<slug>.sql`, NNNN = issue number)
+- `supabase/seed.sql`                  — local/staging seed (makes/models, dev admin, sample data)
+- `tests/`                             — integration + RLS tests (`npm run test:integration`), fixtures
+- `e2e/`                               — Playwright journeys + axe (`npm run test:e2e`)
 
 ## Naming Conventions
 - Files: kebab-case (`user-profile.service.ts`)
@@ -59,7 +66,9 @@ or fragment logic across many small files.
 
 ## Security Standards
 - All Supabase tables have RLS enabled — no exceptions
-- Never use service role key in client-side code
+- Never use service role key in client-side code. Server-side it is allowed ONLY in `src/server/jobs/**` (ADR-006); lint + test enforce this
+- Status transitions (shops, listings, images) happen ONLY via security-definer SQL RPCs (ADR-011)
+- Tests never call paid vendors: CAR_CHECK_PROVIDER=fake, AI_CHECK_PROVIDER=fake, EMAIL_PROVIDER=log
 - Validate and sanitise all user input — never trust client data
 - Auth check in every route handler before any data access
 - Secrets only via environment variables — never hardcoded
