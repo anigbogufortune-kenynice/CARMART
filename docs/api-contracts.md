@@ -237,8 +237,8 @@ z.object({
   bytes: z.number().int().min(1).max(10_485_760),
 }).strict()
 ```
-**Behaviour:** checks the photo cap (20 non-deleted) and the shop's 60-per-24h upload limit, creates a `listing_images` row (`uploaded`), records an `upload_events` row, and returns a **signed upload URL** for the quarantine path (valid for 2 minutes, single object, no overwrite).
-**Success, 201:** `{ "data": { "image_id": "uuid", "upload_url": "https://…", "expires_in": 120 } }`
+**Behaviour:** checks the photo cap (20 non-deleted) and the shop's 60-per-24h upload limit, creates a `listing_images` row (`uploaded`), records an `upload_events` row, and returns a **signed upload URL** for the quarantine path (single object, no overwrite). Supabase fixes signed upload URLs at 2 hours, so `expires_in` is 7200; an `uploaded` photo that never completes is soft-deleted after 2 hours so it stops counting toward the 20-photo cap.
+**Success, 201:** `{ "data": { "image_id": "uuid", "upload_url": "https://…", "expires_in": 7200 } }`
 **Errors:** 409 `INVALID_STATE`, 422 `PHOTO_COUNT`, 422 `VALIDATION_ERROR` (type/size), 429 `UPLOAD_LIMIT`.
 
 ### POST /api/listings/:id/images/:imageId/complete

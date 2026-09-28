@@ -137,3 +137,12 @@ export const LISTING_STATUS_LABELS: Record<ListingStatus, string> = {
   draft: 'Draft', checking: 'Checking photos', in_review: 'In review', rejected: 'Needs changes',
   live: 'Live', sold: 'Sold', expired: 'Expired', removed: 'Removed',
 }
+
+// ── Listing photos (docs/api-contracts.md → Listing photos; ADR-007) ──
+export const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+export const MAX_PHOTO_BYTES = 10_485_760
+export const UploadRequestSchema = z
+  .object({ mime_type: z.enum(PHOTO_MIME_TYPES), bytes: z.number().int().min(1).max(MAX_PHOTO_BYTES) })
+  .strict()
+export type UploadRequest = z.infer<typeof UploadRequestSchema>
+export type ImageStatus = 'uploaded' | 'checking' | 'passed' | 'rejected' | 'in_review'
