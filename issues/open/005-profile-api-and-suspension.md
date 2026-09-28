@@ -36,6 +36,7 @@ As a member, I want to manage my profile; as the platform, I want suspended user
 - src/app/account/profile/page.tsx
 - src/app/suspended/page.tsx
 - src/lib/supabase/middleware.ts
+- supabase/migrations/20260928000500_current_user_has_shop.sql: placeholder `current_user_has_shop()` (returns false until issue 007)
 
 **Test files (in scope):**
 - src/lib/api/route-helpers.test.ts
