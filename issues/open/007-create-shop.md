@@ -31,6 +31,7 @@ As a user, I want to create my shop, so that I can start selling cars.
 - [ ] Postcode 3000 with state NSW → 422 POSTCODE_STATE_MISMATCH; 2600 with ACT → accepted
 - [ ] Anonymous users can't read draft shops; owners can read their own
 - [ ] /sell/shop shows a create form with inline validation, and on success shows 'Shop created (draft)'
+- [ ] The migration replaces the placeholder `current_user_has_shop()` from issue 005 (`create or replace`) so it returns true when the caller owns a shop; GET /api/profile/me then reports has_shop correctly
 
 ## Files to Modify
 - supabase/migrations/20260928000700_shops.sql: shop_status + au_state enums, shops table, indexes, owns_shop(), RLS + column grants
@@ -44,8 +45,6 @@ As a user, I want to create my shop, so that I can start selling cars.
 - src/lib/au-postcode.test.ts
 - tests/services/shop.service.test.ts
 - tests/rls/shops.test.ts
-
-- [ ] The migration replaces the placeholder `current_user_has_shop()` from issue 005 (`create or replace`) so it returns true when the caller owns a shop; GET /api/profile/me then reports has_shop correctly
 
 ## Out of Scope
 - Editing a shop and the public page (issue 008)
