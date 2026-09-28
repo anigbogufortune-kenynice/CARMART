@@ -12,8 +12,8 @@ async function signIn(page: import('@playwright/test').Page, email: string, pass
 test('non-admins get a 404 on /admin', async ({ page }) => {
   const user = await createConfirmedUser(`notadmin-${Date.now()}@test.local`)
   await signIn(page, user.email, user.password, '/admin')
-  const res = await page.goto('/admin')
-  expect(res?.status()).toBe(404)
+  const pageResponse = await page.goto('/admin')
+  expect(pageResponse?.status()).toBe(404)
   await expect(page.getByRole('heading', { name: 'This page could not be found.' })).toBeVisible()
   const res = await page.request.get('/api/admin/queues/shops')
   expect(res.status()).toBe(403)
