@@ -73,10 +73,15 @@ export async function resetDb(): Promise<void> {
     const { error } = await admin.from(table).delete().not('created_at', 'is', null)
     if (error) throw new Error(`resetDb: clearing ${table} failed: ${error.message}`)
   }
-  for (;;) {
-    const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 })
-    if (error) throw new Error(`resetDb: listUsers failed: ${error.message}`)
-    if (data.users.length === 0) return
-    await Promise.all(data.users.map((u) => admin.auth.admin.deleteUser(u.id)))
-  }
+  const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 })
+  if (error) throw new Error(`resetDb: listUsers failed: ${error.message}`)
+  const doomed = data.users.filter((u) => !isSeedAccount(u.email))
+  const results = await Promise.all(doomed.map((u) => admin.auth.admin.deleteUser(u.id)))
+  const failed = results.find((r) => r.error)
+  if (failed?.error) throw new Error(`resetDb: deleteUser failed: ${failed.error.message}`)
+}
+
+/** Accounts created by supabase/seed.sql (e.g. admin@carmart.local) survive resetDb for E2E use. */
+export function isSeedAccount(email: string | undefined): boolean {
+  return !!email && email.endsWith('@carmart.local')
 }

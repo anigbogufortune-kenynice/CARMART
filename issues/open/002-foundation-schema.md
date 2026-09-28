@@ -42,7 +42,7 @@ As the platform, I want user profiles, settings, an append-only audit log and an
 - tests/rls/foundation.test.ts
 - src/lib/env.test.ts
 - src/lib/logger.test.ts
-- tests/helpers/supabase-test.ts (append new tables to TABLES)
+- tests/helpers/supabase-test.ts (resetDb keeps seed accounts @carmart.local)
 
 ## Out of Scope
 - Shops, listings or any feature table
@@ -63,7 +63,7 @@ Test 3: seeded admin via `createUser({ role: 'admin' })`: `asUser(admin).from('p
 File:   migration, supabase/seed.sql
 
 Step 4: app_settings seed + admin-only access
-Test 4: `adminDb().from('app_settings').select('key,value')` contains `ai_reject_threshold` = 0.9, `ai_review_threshold` = 0.5, `listing_expiry_days` = 60 (13 keys total); `asUser(user).from('app_settings').select('key')` → 0 rows
+Test 4: `adminDb().from('app_settings').select('key,value')` contains `ai_reject_threshold` = 0.9, `ai_review_threshold` = 0.5, `listing_expiry_days` = 60 (14 keys total (max_photos and min_photos are separate keys)); `asUser(user).from('app_settings').select('key')` → 0 rows
 File:   migration
 
 Step 5: admin_actions append-only

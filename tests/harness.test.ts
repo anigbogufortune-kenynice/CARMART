@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest'
-import { adminDb, anonDb, asUser, createUser, resetDb } from './helpers/supabase-test'
+import { adminDb, anonDb, asUser, createUser, isSeedAccount, resetDb } from './helpers/supabase-test'
 
 describe('integration harness', () => {
   afterAll(async () => {
@@ -24,10 +24,10 @@ describe('integration harness', () => {
     expect(data.user?.email_confirmed_at ?? null).toBeNull()
   })
 
-  it('resetDb removes every auth user', async () => {
+  it('resetDb removes every test user but keeps seed accounts', async () => {
     await createUser({ email: 'c@test.local', verified: true })
     await resetDb()
     const { data } = await adminDb().auth.admin.listUsers()
-    expect(data.users).toHaveLength(0)
+    expect(data.users.filter((u) => !isSeedAccount(u.email))).toHaveLength(0)
   })
 })
