@@ -37,6 +37,7 @@ As an admin, I want to see which shops are waiting, so that I can review them in
 
 **Test files (in scope):**
 - tests/services/moderation-queues.test.ts
+- e2e/admin-guard.spec.ts (the layout guard is proven end to end instead of by mocking internal modules)
 
 ## Out of Scope
 - Approve/reject actions (012)
