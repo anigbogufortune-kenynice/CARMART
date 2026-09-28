@@ -33,14 +33,14 @@ As the development team, I want a reliable test harness and CI, so that every is
 - package.json: scripts `test:integration`, `test:e2e`; devDeps `@playwright/test`, `@axe-core/playwright`, `dotenv`
 - vitest.integration.config.mts: node env, include `tests/**/*.test.ts`, `fileParallelism: false`, setupFiles loading `.env.test`
 - tests/helpers/supabase-test.ts
-- .eslintrc.json: `no-restricted-imports` + `no-restricted-properties` (process.env.SUPABASE_SERVICE_ROLE_KEY) with overrides for `src/server/jobs/**` and `tests/**`
+- .eslintrc.json: `no-restricted-imports` + `no-restricted-syntax` (process.env.SUPABASE_SERVICE_ROLE_KEY; `no-restricted-properties` can't match nested objects) with overrides for `src/server/jobs/**` and `tests/**`
 - playwright.config.ts
 - .github/workflows/ci.yml
 
 **Test files (in scope):**
 - tests/harness.test.ts
 - src/lint-guard.test.ts
-- .env.test (local stack defaults + fake providers)
+- .env.test is generated, not committed (`npx supabase status -o env > .env.test`; keys differ per machine)
 
 ## Out of Scope
 - Any database table (issue 002)

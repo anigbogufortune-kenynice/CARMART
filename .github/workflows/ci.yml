@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CAR_CHECK_PROVIDER: fake
+  AI_CHECK_PROVIDER: fake
+  EMAIL_PROVIDER: log
+  FAKE_PROVIDER_STRICT: '1'
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run type-check
+
+      - name: Unit tests
+        run: npm run test -- --reporter=default --reporter=github-actions --reporter=json --outputFile.json=reports/unit.json
+
+      - name: Start Supabase
+        run: npx supabase start
+
+      - name: Reset database
+        run: npx supabase db reset
+
+      - name: Write .env.test and .env.local from the local stack
+        run: |
+          npx supabase status -o env > .env.test
+          set -a; . ./.env.test; set +a
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000"
+            echo "NEXT_PUBLIC_SUPPORT_EMAIL=support@carmart.example"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "INTERNAL_JOB_SECRET=ci-internal-job-secret-0123456789abcdef"
+          } > .env.local
+
+      - name: Integration tests
+        run: npm run test:integration -- --reporter=default --reporter=github-actions --reporter=json --outputFile.json=reports/integration.json
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: npm run test:e2e
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: reports/e2e.json
+
+      - name: Report test counts as annotations
+        if: always()
+        run: |
+          node -e '
+          const fs = require("fs");
+          for (const kind of ["unit", "integration"]) {
+            const f = `reports/${kind}.json`;
+            if (!fs.existsSync(f)) { console.log(`::warning title=${kind}::no report (stage did not run)`); continue; }
+            const r = JSON.parse(fs.readFileSync(f, "utf8"));
+            console.log(`::notice title=${kind}::files ${r.numPassedTestSuites}/${r.numTotalTestSuites} passed; tests ${r.numPassedTests} passed, ${r.numFailedTests} failed, ${r.numPendingTests + r.numTodoTests} skipped (total ${r.numTotalTests})`);
+          }
+          const e = "reports/e2e.json";
+          if (fs.existsSync(e)) {
+            const s = JSON.parse(fs.readFileSync(e, "utf8")).stats;
+            console.log(`::notice title=e2e::tests ${s.expected} passed, ${s.unexpected} failed, ${s.flaky} flaky, ${s.skipped} skipped`);
+          } else console.log("::warning title=e2e::no report (stage did not run)");
+          '
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
+
+      - name: Build
+        run: npm run build
