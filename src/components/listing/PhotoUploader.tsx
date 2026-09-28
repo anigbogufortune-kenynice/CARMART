@@ -29,21 +29,29 @@ const REQUEST_MESSAGES: Record<string, string> = {
 /** Errors that make every remaining file in the batch fail the same way. */
 const STOP_BATCH = ['UPLOAD_LIMIT', 'PHOTO_COUNT', 'INVALID_STATE', 'FORBIDDEN']
 
-type Props = { listingId: string; editable: boolean; pollMs?: number }
+type Props = { listingId: string; editable: boolean; pollMs?: number; onChange?: () => void }
 
-export function PhotoUploader({ listingId, editable, pollMs = 3000 }: Props) {
+export function PhotoUploader({ listingId, editable, pollMs = 3000, onChange }: Props) {
   const [photos, setPhotos] = useState<UploaderPhoto[] | null>(null)
   const [pending, setPending] = useState<Pending[]>([])
   const [notice, setNotice] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const dragged = useRef<string | null>(null)
+  const changed = useRef(false)
   const base = `/api/listings/${listingId}/images`
 
   const refresh = useCallback(async () => {
     try {
       const res = await fetch(`${base}/status`)
       const json = (await res.json()) as { data?: UploaderPhoto[] }
-      if (json.data) setPhotos(json.data)
+      if (json.data) {
+        const next = json.data
+        setPhotos((prev) => {
+          const key = (list: UploaderPhoto[] | null) => (list ?? []).map((p) => `${p.image_id}:${p.status}`).join('|')
+          if (prev !== null && key(prev) !== key(next)) changed.current = true
+          return next
+        })
+      }
     } catch {
       // A missed poll is retried on the next tick.
     }
@@ -52,6 +60,14 @@ export function PhotoUploader({ listingId, editable, pollMs = 3000 }: Props) {
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  // Tell the page when photos were added, removed or decided (after the render that shows it).
+  useEffect(() => {
+    if (changed.current) {
+      changed.current = false
+      onChange?.()
+    }
+  })
 
   // Poll while any photo is being checked; stop as soon as none are.
   const checking = !!photos?.some((p) => p.status === 'checking')

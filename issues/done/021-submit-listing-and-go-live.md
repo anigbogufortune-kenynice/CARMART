@@ -34,15 +34,20 @@ As a shop owner, I want my car to go live as soon as its photos pass, so that bu
 
 ## Files to Modify
 - supabase/migrations/20260928002100_submit_and_evaluate_listing.sql: `submit_listing`, `evaluate_listing` (create or replace)
-- src/services/listing.service.ts: `submitListing`
+- src/services/listing-lifecycle.service.ts: `submitListing` (new module for status transitions; listing.service would exceed 8 functions)
 - src/app/api/listings/[id]/submit/route.ts
 - src/components/listing/ListingStatusBanner.tsx
 - src/app/sell/listings/[id]/page.tsx: submit button + banner
+- src/app/sell/listings/[id]/ListingActions.tsx, PhotosSection.tsx, EditListing.tsx: submit with blockers, refresh while checking / after edits and photo changes
+- src/components/listing/PhotoUploader.tsx: `onChange`
+- tests/helpers/listing-fixtures.ts: approved owner, complete draft with photos, unique VINs
+- Submit drops unconfirmed (`uploaded`) photos before counting; evaluate adds `duplicate_vin` if another listing went live with the VIN meanwhile (INV-L1), and rejects if fewer than 4 photos remain
 
 **Test files (in scope):**
 - tests/services/listing-submit.test.ts
 - tests/services/evaluate-listing.test.ts
 - src/components/listing/ListingStatusBanner.test.tsx
+- e2e/submit-listing.spec.ts (go-live journey)
 
 ## Out of Scope
 - Emails for these transitions (022)
