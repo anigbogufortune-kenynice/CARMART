@@ -39,10 +39,13 @@ As a shop owner, I want to edit my shop and see what's left to do; as a visitor,
 - src/app/sell/shop/page.tsx: use ShopForm (create or edit)
 - src/app/sell/page.tsx
 - src/app/shops/[slug]/page.tsx
+- supabase/migrations/20260928000800_shop_edit_and_public_view.sql: slug-lock trigger (INV-S5) + `public_shops` view (approved shops + computed `verified`, no owner-only fields)
+- src/components/shop/SellChecklist.tsx: checklist (page files can't export testable helpers)
 
 **Test files (in scope):**
 - tests/services/shop.service.test.ts
 - src/components/shop/ShopForm.test.tsx
+- src/components/shop/SellChecklist.test.tsx
 
 ## Out of Scope
 - Phone verification (009)

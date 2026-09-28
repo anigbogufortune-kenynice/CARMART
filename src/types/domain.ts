@@ -23,3 +23,17 @@ export const ShopCreateSchema = z
 export type ShopCreateInput = z.infer<typeof ShopCreateSchema>
 
 export type ShopStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'suspended'
+
+export const ShopUpdateSchema = z
+  .object({
+    name: z.string().trim().min(2, 'Use at least 2 characters').max(60),
+    slug: SlugSchema,
+    description: z.string().trim().max(1000).nullable(),
+    suburb: z.string().trim().min(2, 'Enter your suburb').max(60),
+    state: AuStateSchema,
+    postcode: PostcodeSchema,
+    show_phone: z.boolean(),
+  })
+  .partial()
+  .strict()
+export type ShopUpdateInput = z.infer<typeof ShopUpdateSchema>

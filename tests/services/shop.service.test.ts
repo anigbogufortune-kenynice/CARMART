@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { getMe } from '@/services/profile.service'
-import { createShop, getMyShop } from '@/services/shop.service'
-import { asUser, createUser, resetDb } from '../helpers/supabase-test'
+import { createShop, getMyShop, getPublicShopBySlug, updateMyShop } from '@/services/shop.service'
+import { adminDb, anonDb, asUser, createUser, resetDb } from '../helpers/supabase-test'
 
 afterEach(async () => {
   await resetDb()
@@ -47,5 +47,50 @@ describe('shop.service createShop / getMyShop', () => {
     const results = await Promise.all([createShop(a, input), createShop(b, input)])
     expect(results.filter((r) => r.ok)).toHaveLength(1)
     expect(results.find((r) => !r.ok)).toMatchObject({ error: { code: 'SLUG_TAKEN' } })
+  })
+})
+
+describe('shop.service updateMyShop / getPublicShopBySlug (issue 008)', () => {
+  it('updates editable fields', async () => {
+    const db = await asUser(await createUser({ email: 'a@x.au' }))
+    await createShop(db, input)
+    expect(await updateMyShop(db, { name: 'Coastal Cars NSW', description: 'Family run' })).toMatchObject({
+      ok: true, value: { name: 'Coastal Cars NSW', description: 'Family run' },
+    })
+  })
+
+  it('SLUG_LOCKED once submitted, or after the first approval', async () => {
+    const owner = await createUser({ email: 'a@x.au' })
+    const db = await asUser(owner)
+    const created = await createShop(db, input)
+    const id = created.ok ? created.value.id : ''
+    expect(await updateMyShop(db, { slug: 'renamed-ok' })).toMatchObject({ ok: true, value: { slug: 'renamed-ok' } })
+    await adminDb().from('shops').update({ status: 'pending_approval' }).eq('id', id)
+    expect(await updateMyShop(db, { slug: 'new-slug' })).toMatchObject({ ok: false, error: { code: 'SLUG_LOCKED' } })
+    await adminDb().from('shops').update({ status: 'rejected', approved_at: new Date().toISOString() }).eq('id', id)
+    expect(await updateMyShop(db, { slug: 'new-slug' })).toMatchObject({ ok: false, error: { code: 'SLUG_LOCKED' } })
+  })
+
+  it('POSTCODE_STATE_MISMATCH on edit', async () => {
+    const db = await asUser(await createUser({ email: 'a@x.au' }))
+    await createShop(db, input)
+    expect(await updateMyShop(db, { postcode: '3000' })).toMatchObject({ ok: false, error: { code: 'POSTCODE_STATE_MISMATCH' } })
+  })
+
+  it('public view: drafts are NOT_FOUND; approved shops expose no private fields', async () => {
+    const owner = await createUser({ email: 'a@x.au' })
+    const created = await createShop(await asUser(owner), input)
+    const id = created.ok ? created.value.id : ''
+    expect(await getPublicShopBySlug(anonDb(), 'coastal-cars')).toMatchObject({ ok: false, error: { code: 'NOT_FOUND' } })
+
+    await adminDb().from('shops').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', id)
+    const unverified = await getPublicShopBySlug(anonDb(), 'coastal-cars')
+    expect(unverified).toMatchObject({ ok: true, value: { name: 'Coastal Cars', verified: false } })
+
+    await adminDb().from('profiles').update({ phone: '+61400000000', phone_verified_at: new Date().toISOString() }).eq('id', owner.id)
+    const verified = await getPublicShopBySlug(anonDb(), 'coastal-cars')
+    expect(verified).toMatchObject({ ok: true, value: { verified: true } })
+    const keys = verified.ok ? Object.keys(verified.value) : []
+    for (const privateKey of ['status_reason', 'listing_cap', 'owner_id', 'phone', 'show_phone']) expect(keys).not.toContain(privateKey)
   })
 })
