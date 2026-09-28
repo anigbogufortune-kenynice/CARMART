@@ -119,3 +119,20 @@ export async function getPublicShopBySlug(db: SupabaseClient, slug: string): Pro
   if (!data) return err({ code: 'NOT_FOUND', message: 'Shop not found' })
   return ok(data as PublicShop)
 }
+
+const RPC_ERRORS: Record<string, AppError> = {
+  PHONE_NOT_VERIFIED: { code: 'PHONE_NOT_VERIFIED', message: 'Verify your phone before submitting your shop' },
+  INVALID_STATE: { code: 'INVALID_STATE', message: 'This shop can’t be submitted right now' },
+  NOT_FOUND: { code: 'NOT_FOUND', message: 'You have not created a shop yet' },
+  UNAUTHENTICATED: { code: 'UNAUTHENTICATED', message: 'Sign in to continue' },
+}
+
+/** draft | rejected → pending_approval (submit_shop RPC enforces every guard). */
+export async function submitMyShop(db: SupabaseClient): Promise<Result<Shop, AppError>> {
+  const { error } = await db.rpc('submit_shop')
+  if (error) {
+    const known = Object.keys(RPC_ERRORS).find((code) => error.message.includes(code))
+    return err(known ? RPC_ERRORS[known] : { code: 'INTERNAL_ERROR', message: error.message })
+  }
+  return getMyShop(db)
+}

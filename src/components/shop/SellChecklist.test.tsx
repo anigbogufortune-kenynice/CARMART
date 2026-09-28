@@ -1,5 +1,8 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }) }))
+
 import { SellChecklist, checklistSteps } from './SellChecklist'
 
 describe('SellChecklist', () => {
@@ -11,6 +14,23 @@ describe('SellChecklist', () => {
   it('pending approval: steps 1–3 done', () => {
     const steps = checklistSteps({ hasShop: true, phoneVerified: true, shopStatus: 'pending_approval' })
     expect(steps.filter((s) => s.done).map((s) => s.key)).toEqual(['shop', 'phone', 'submit'])
+  })
+
+  it('offers Submit once shop + phone are done, and explains what is missing otherwise', async () => {
+    const onSubmit = vi.fn()
+    const { rerender } = render(<SellChecklist state={{ hasShop: true, phoneVerified: false, shopStatus: 'draft' }} onSubmit={onSubmit} />)
+    expect(screen.getByRole('button', { name: 'Submit for approval' })).toBeDisabled()
+    expect(screen.getByText('Verify your phone first')).toBeInTheDocument()
+    rerender(<SellChecklist state={{ hasShop: true, phoneVerified: true, shopStatus: 'draft' }} onSubmit={onSubmit} />)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Submit for approval' }))
+    expect(onSubmit).toHaveBeenCalled()
+  })
+
+  it('shows Waiting for approval, and Resubmit for rejected shops', () => {
+    const { rerender } = render(<SellChecklist state={{ hasShop: true, phoneVerified: true, shopStatus: 'pending_approval' }} onSubmit={vi.fn()} />)
+    expect(screen.getByText('Waiting for approval')).toBeInTheDocument()
+    rerender(<SellChecklist state={{ hasShop: true, phoneVerified: true, shopStatus: 'rejected' }} onSubmit={vi.fn()} />)
+    expect(screen.getByRole('button', { name: 'Resubmit' })).toBeEnabled()
   })
 
   it('renders step labels and done markers', () => {
