@@ -37,6 +37,7 @@ As the platform, I want queued emails to be sent reliably, so that users are tol
 - src/server/jobs/notification-dispatch/dispatch.ts: `dispatchPending(limit)`
 - src/server/jobs/notification-dispatch/templates.ts
 - src/app/api/internal/dispatch-notifications/route.ts
+- supabase/migrations/20260928000600_notification_claims.sql: `sending` status + `claim_notifications` (FOR UPDATE SKIP LOCKED) + `finish_notification`, so concurrent dispatchers never double-send
 
 **Test files (in scope):**
 - src/server/jobs/internal-auth.test.ts
