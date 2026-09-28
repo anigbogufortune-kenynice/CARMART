@@ -28,7 +28,7 @@ async function uploadedPhoto() {
   const path = `${shop.value.id}/${draft.value.id}/${req.value.image_id}`
   const up = await step('signed upload', db.storage.from('listing-quarantine').uploadToSignedUrl(path, token, PHOTO, { contentType: 'image/jpeg' }))
   expect(up.error).toBeNull()
-  return { db, path, listingId: draft.value.id, imageId: req.value.image_id }
+  return { db, path, token, listingId: draft.value.id, imageId: req.value.image_id }
 }
 
 describe('quarantine storage and photo rows', () => {
@@ -39,13 +39,6 @@ describe('quarantine storage and photo rows', () => {
     const other = await asUser(await createUser({ email: 'b@x.au' }))
     expect((await other.storage.from('listing-quarantine').download(path)).error).not.toBeNull()
     expect((await other.from('listing_images').select('id').eq('id', imageId)).data ?? []).toHaveLength(0)
-  })
-
-  it('another user cannot get an upload URL for the owner’s path; nobody can overwrite', async () => {
-    const { db, path } = await uploadedPhoto()
-    const other = await asUser(await createUser({ email: 'b@x.au' }))
-    expect((await other.storage.from('listing-quarantine').createSignedUploadUrl(path)).error).not.toBeNull()
-    expect((await db.storage.from('listing-quarantine').upload(path, PHOTO, { upsert: true, contentType: 'image/jpeg' })).error).not.toBeNull()
   })
 
   it('clients cannot write listing-public, or write image_checks and upload_events directly', async () => {
@@ -61,4 +54,11 @@ describe('quarantine storage and photo rows', () => {
     expect((await step('admin read', adminDb().from('image_checks').select('id').eq('image_id', imageId))).data).toHaveLength(1)
   })
 
+  it('another user cannot get an upload URL for the owner’s path; the token can’t overwrite (runs last)', async () => {
+    const { db, path, token } = await uploadedPhoto()
+    const other = await asUser(await createUser({ email: 'b@x.au' }))
+    expect((await step('foreign sign', other.storage.from('listing-quarantine').createSignedUploadUrl(path))).error).not.toBeNull()
+    const again = await step('reuse token', db.storage.from('listing-quarantine').uploadToSignedUrl(path, token, PHOTO, { contentType: 'image/jpeg' }))
+    expect(again.error).not.toBeNull()
+  })
 })
