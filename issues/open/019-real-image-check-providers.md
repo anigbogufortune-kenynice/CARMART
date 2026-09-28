@@ -38,11 +38,13 @@ As the platform, I want real detection vendors behind the same interface, so tha
 - src/server/jobs/image-verification/providers/index.ts: `getProviders`
 - scripts/smoke-image-vendors.ts
 - package.json: dependency `@anthropic-ai/sdk`
+- src/server/jobs/image-verification/pipeline.ts: uses `getProviders` (replaces the 018 fake-only factory)
 
 **Test files (in scope):**
 - src/server/jobs/image-verification/providers/claude-car-check.provider.test.ts
 - src/server/jobs/image-verification/providers/sightengine-ai-check.provider.test.ts
 - src/server/jobs/image-verification/providers/index.test.ts
+- src/server/jobs/image-verification/smoke-script.test.ts (Step 5)
 
 ## Out of Scope
 - The Hive provider (ADR-013)
