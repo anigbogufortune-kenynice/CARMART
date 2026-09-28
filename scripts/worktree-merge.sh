@@ -21,9 +21,12 @@ if [ -z "$PHASE" ]; then
   exit 1
 fi
 
-PHASE_BRANCHES=$(awk "/^## Phase $PHASE /,/^## Phase [0-9]|^## Human/" \
+# Rows between "## Phase N " and the next "## " heading. (A range pattern
+# like /^## Phase N /,/^## Phase [0-9]/ closes on its own start line, so we
+# use a flag instead.)
+PHASE_BRANCHES=$(awk -v p="$PHASE" '$0 ~ ("^## Phase " p " ") {f=1; next} /^## / {f=0} f' \
   issues/EXECUTION_PLAN.md \
-  | grep "^\| [0-9]" \
+  | grep "^| [0-9]" \
   | awk -F'|' '{gsub(/ /,"",$4); print $4}' \
   | grep "^feature/")
 
