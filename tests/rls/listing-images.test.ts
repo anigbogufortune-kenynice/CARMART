@@ -41,11 +41,9 @@ describe('quarantine storage and photo rows', () => {
     expect((await other.from('listing_images').select('id').eq('id', imageId)).data ?? []).toHaveLength(0)
   })
 
-  it('clients cannot write listing-public, or write image_checks and upload_events directly', async () => {
+  it('clients cannot write image_checks, upload_events or photo status directly', async () => {
     const { db, listingId, imageId } = await step('setup', uploadedPhoto(), 20000)
     await step('complete', completeUpload(db, listingId, imageId))
-    const pub = await step('public upload', db.storage.from('listing-public').upload(`${listingId}/x-sm.webp`, PHOTO, { contentType: 'image/webp' }))
-    expect(pub.error).not.toBeNull()
     expect((await step('insert check', db.from('image_checks').insert({ image_id: imageId }))).error).not.toBeNull()
     expect((await step('insert event', db.from('upload_events').insert({ shop_id: listingId }))).error).not.toBeNull()
     expect((await step('update status', db.from('listing_images').update({ status: 'passed' }).eq('id', imageId)))).toMatchObject({ error: expect.anything() })
@@ -54,11 +52,15 @@ describe('quarantine storage and photo rows', () => {
     expect((await step('admin read', adminDb().from('image_checks').select('id').eq('image_id', imageId))).data).toHaveLength(1)
   })
 
-  it('another user cannot get an upload URL for the owner’s path; the token can’t overwrite (runs last)', async () => {
-    const { db, path, token } = await uploadedPhoto()
+  // Denied uploads make the local storage server stall its next request for a while, so every
+  // denied-upload assertion lives here, at the very end of the file.
+  it('no foreign upload URLs, no overwrite through a re-used token, no client writes to listing-public', async () => {
+    const { db, path, token, listingId } = await uploadedPhoto()
     const other = await asUser(await createUser({ email: 'b@x.au' }))
     expect((await step('foreign sign', other.storage.from('listing-quarantine').createSignedUploadUrl(path))).error).not.toBeNull()
     const again = await step('reuse token', db.storage.from('listing-quarantine').uploadToSignedUrl(path, token, PHOTO, { contentType: 'image/jpeg' }))
     expect(again.error).not.toBeNull()
+    const pub = await step('public upload', db.storage.from('listing-public').upload(`${listingId}/x-sm.webp`, PHOTO, { contentType: 'image/webp' }), 20000)
+    expect(pub.error).not.toBeNull()
   })
 })
