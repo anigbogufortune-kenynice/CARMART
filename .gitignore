@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+.nyc_output
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Worktrees (live in parent directory but never commit if they end up here)
+.worktrees/
+../.worktrees/
+
+# Supabase local
+**/supabase/.branches
+**/supabase/.temp
+
+# Next.js / Vercel
+.vercel
+*.pem
+.yarn/install-state.gz
+next-env.d.ts
