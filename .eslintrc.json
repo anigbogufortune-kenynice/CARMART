@@ -1,3 +1,43 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": [
+              "@/server/jobs/supabase-admin",
+              "**/server/jobs/supabase-admin"
+            ],
+            "message": "The service-role client may only be used inside src/server/jobs/** (ADR-006)."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "MemberExpression[object.type='MemberExpression'][object.object.name='process'][object.property.name='env'][property.name='SUPABASE_SERVICE_ROLE_KEY']",
+        "message": "SUPABASE_SERVICE_ROLE_KEY may only be read inside src/server/jobs/** (ADR-006)."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/server/jobs/**",
+        "tests/**",
+        "e2e/**",
+        "scripts/**"
+      ],
+      "rules": {
+        "no-restricted-imports": "off",
+        "no-restricted-syntax": "off"
+      }
+    }
+  ]
 }
