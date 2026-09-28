@@ -269,6 +269,7 @@
 | `decision` | `image_status` | YES | null | `passed` / `rejected` / `in_review` |
 | `decision_reason` | `text` | YES | null | Seller-facing reason |
 | `decided_by` | `uuid` | YES | null | Null = automatic; otherwise the admin's profile id |
+| `thresholds` | `jsonb` | YES | null | The decision settings used (INV-I3) |
 | `decided_at` | `timestamptz` | YES | null | |
 | `created_at` / `updated_at` | `timestamptz` | NO | `now()` | |
 
