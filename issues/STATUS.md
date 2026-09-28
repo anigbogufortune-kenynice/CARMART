@@ -8,52 +8,52 @@
 ## Issues
 | # | Title | Phase | Status | Branch | Blocked by | PR | Updated |
 |---|---|---|---|---|---|---|---|
-| 001 | Dev and test infrastructure (integration harness, CI, lint guard, Playwright) | 1 | ✅ merged | `feature/001-dev-test-infrastructure` | nothing | — | 2026-09-28 13:55 |
-| 002 | Foundation schema: profiles, helper functions, settings, audit log, email outbox | 2 | ✅ merged | `feature/002-foundation-schema` | #001 | — | 2026-09-28 13:55 |
-| 003 | Supabase clients, session middleware and the sign-up flow | 3 | ✅ merged | `feature/003-supabase-clients-and-sign-up` | #002 | — | 2026-09-28 13:55 |
-| 004 | Sign in, sign out, password reset and the site header | 4 | ✅ merged | `feature/004-sign-in-reset-header` | #003 | — | 2026-09-28 13:55 |
-| 005 | Profile API, route helpers, profile page and suspended-account handling | 5 | ⏳ open | `feature/005-profile-api-and-suspension` | #004 | — | 2026-09-28 13:55 |
-| 006 | Job runner foundation and email dispatch (log provider) | 3 | ⏳ open | `feature/006-job-runner-and-email-dispatch` | #002 | — | 2026-09-28 13:55 |
-| 007 | Create my shop (shops table, postcode rules, create form) | 6 | 🔒 blocked | `feature/007-create-shop` | #005 | — | 2026-09-28 13:55 |
-| 008 | Edit my shop, the seller checklist and the public shop page | 7 | 🔒 blocked | `feature/008-edit-shop-and-public-page` | #007 | — | 2026-09-28 13:55 |
-| 009 | Verify my Australian mobile by SMS code | 8 | 🔒 blocked | `feature/009-phone-verification` | #008 | — | 2026-09-28 13:55 |
-| 010 | Submit my shop for approval | 9 | 🔒 blocked | `feature/010-submit-shop-for-approval` | #009 | — | 2026-09-28 13:55 |
-| 011 | Admin area and the pending-shops queue | 10 | 🔒 blocked | `feature/011-admin-area-and-shop-queue` | #010 | — | 2026-09-28 13:55 |
-| 012 | Approve or reject a shop, with audit log and emails | 11 | 🔒 blocked | `feature/012-admin-approve-reject-shop` | #011, #006 | — | 2026-09-28 13:55 |
-| 013 | Car-only make and model reference data | 6 | 🔒 blocked | `feature/013-vehicle-reference-data` | #005 | — | 2026-09-28 13:55 |
-| 014 | Listings table, VIN rules and the draft API | 7 | 🔒 blocked | `feature/014-listings-table-and-draft-api` | #013, #007 | — | 2026-09-28 13:55 |
-| 015 | Seller listings dashboard and the car listing form | 8 | 🔒 blocked | `feature/015-listing-draft-form` | #014, #008 | — | 2026-09-28 13:55 |
-| 016 | Photo tables, private quarantine storage and the upload API | 8 | 🔒 blocked | `feature/016-photo-upload-api` | #014 | — | 2026-09-28 13:55 |
-| 017 | Image decision table, fake providers and test fixtures | 2 | ✅ merged | `feature/017-image-decision-table-and-fakes` | #001 | — | 2026-09-28 13:55 |
-| 018 | Image verification job: validate, fingerprint, check, decide, clean and publish | 9 | 🔒 blocked | `feature/018-image-verification-pipeline` | #016, #017, #006 | — | 2026-09-28 13:55 |
-| 019 | Claude car-check and Sightengine AI-check providers | 3 | 🔒 blocked | `feature/019-real-image-check-providers` | #017 | — | 2026-09-28 13:55 |
-| 020 | Photo uploader with live check status, HEIC conversion and reordering | 9 | 🔒 blocked | `feature/020-photo-uploader-ui` | #016, #015 | — | 2026-09-28 13:55 |
-| 021 | Submit a listing and go live automatically | 12 | 🔒 blocked | `feature/021-submit-listing-and-go-live` | #018, #020, #012 | — | 2026-09-28 13:55 |
-| 022 | Listing detail API (public vs owner) and listing status emails | 13 | ⏳ open | `feature/022-listing-view-api-and-emails` | #021 | — | 2026-09-28 13:55 |
-| 023 | Edit a live listing (minor vs identity changes, live photo rules) | 14 | 🔒 blocked | `feature/023-edit-live-listing` | #022 | — | 2026-09-28 13:55 |
-| 024 | Mark a listing sold, and unpublish removed or old sold listings | 15 | 🔒 blocked | `feature/024-mark-sold-and-unpublish` | #023 | — | 2026-09-28 13:55 |
-| 025 | Listing expiry, reminder emails and renewal | 16 | 🔒 blocked | `feature/025-expiry-reminders-and-renew` | #024 | — | 2026-09-28 13:55 |
-| 026 | Search service and public search API | 14 | 🔒 blocked | `feature/026-search-service-and-api` | #022 | — | 2026-09-28 13:55 |
-| 027 | /cars search page with filters, and the home page | 15 | 🔒 blocked | `feature/027-cars-search-page-and-home` | #026 | — | 2026-09-28 13:55 |
-| 028 | Public listing detail page (gallery, specs, VIN/PPSR, shop card, SOLD) | 16 | 🔒 blocked | `feature/028-listing-detail-page` | #027 | — | 2026-09-28 13:55 |
-| 029 | Saved cars (watchlist) | 17 | 🔒 blocked | `feature/029-saved-cars` | #028 | — | 2026-09-28 13:55 |
-| 030 | SEO metadata, sitemap, robots and site footer | 18 | 🔒 blocked | `feature/030-seo-metadata-footer` | #029 | — | 2026-09-28 13:55 |
-| 031 | Legal and trust pages | 19 | 🔒 blocked | `feature/031-legal-and-trust-pages` | #030 | — | 2026-09-28 13:55 |
-| 032 | End-to-end journeys and accessibility checks | 20 | 🔒 blocked | `feature/032-e2e-journeys-and-accessibility` | #031 | — | 2026-09-28 13:55 |
-| 033 | Conversations and messages: schema, rules and API | 14 | 🔒 blocked | `feature/033-conversations-schema-and-service` | #022 | — | 2026-09-28 13:55 |
-| 034 | 'Message seller' button and the buyer inbox | 19 | 🔒 blocked | `feature/034-message-seller-ui-and-buyer-inbox` | #033, #030 | — | 2026-09-28 13:55 |
-| 035 | Seller inbox and replies | 20 | 🔒 blocked | `feature/035-seller-inbox` | #034 | — | 2026-09-28 13:55 |
-| 036 | New-message email alerts and message rate limit | 21 | 🔒 blocked | `feature/036-message-email-alerts` | #035 | — | 2026-09-28 13:55 |
-| 037 | Show seller phone to signed-in buyers (opt-in) | 22 | 🔒 blocked | `feature/037-show-seller-phone` | #036 | — | 2026-09-28 13:55 |
-| 038 | Block a conversation | 23 | 🔒 blocked | `feature/038-block-conversation` | #037 | — | 2026-09-28 13:55 |
-| 039 | Admin image review queue with evidence | 13 | 🔒 blocked | `feature/039-admin-image-review-queue` | #021, #012 | — | 2026-09-28 13:55 |
-| 040 | Admin approve or reject a reviewed photo | 17 | 🔒 blocked | `feature/040-admin-approve-reject-photo` | #039, #025 | — | 2026-09-28 13:55 |
-| 041 | Duplicate-VIN and 'Other' make/model review queues | 18 | 🔒 blocked | `feature/041-admin-listing-review-queues` | #040 | — | 2026-09-28 13:55 |
-| 042 | Clear review flags, reject or remove listings | 19 | 🔒 blocked | `feature/042-admin-listing-actions` | #041 | — | 2026-09-28 13:55 |
-| 043 | Report a listing or shop, and auto-hide at 3 reports | 24 | 🔒 blocked | `feature/043-reports-and-auto-hide` | #042, #038 | — | 2026-09-28 13:55 |
-| 044 | Reports queue for admins, and reporting conversations | 25 | 🔒 blocked | `feature/044-reports-queue-and-conversation-reports` | #043 | — | 2026-09-28 13:55 |
-| 045 | Suspend and unsuspend shops and users, and set listing caps | 26 | 🔒 blocked | `feature/045-suspensions-and-listing-caps` | #044 | — | 2026-09-28 13:55 |
-| 046 | Admin settings: image-check thresholds and limits | 27 | 🔒 blocked | `feature/046-admin-settings` | #045 | — | 2026-09-28 13:55 |
-| 047 | Admin audit log | 28 | 🔒 blocked | `feature/047-audit-log` | #046 | — | 2026-09-28 13:55 |
+| 001 | Dev and test infrastructure (integration harness, CI, lint guard, Playwright) | 1 | ✅ merged | `feature/001-dev-test-infrastructure` | nothing | — | 2026-09-28 14:02 |
+| 002 | Foundation schema: profiles, helper functions, settings, audit log, email outbox | 2 | ✅ merged | `feature/002-foundation-schema` | #001 | — | 2026-09-28 14:02 |
+| 003 | Supabase clients, session middleware and the sign-up flow | 3 | ✅ merged | `feature/003-supabase-clients-and-sign-up` | #002 | — | 2026-09-28 14:02 |
+| 004 | Sign in, sign out, password reset and the site header | 4 | ✅ merged | `feature/004-sign-in-reset-header` | #003 | — | 2026-09-28 14:02 |
+| 005 | Profile API, route helpers, profile page and suspended-account handling | 5 | ✅ merged | `feature/005-profile-api-and-suspension` | #004 | — | 2026-09-28 14:02 |
+| 006 | Job runner foundation and email dispatch (log provider) | 3 | ⏳ open | `feature/006-job-runner-and-email-dispatch` | #002 | — | 2026-09-28 14:02 |
+| 007 | Create my shop (shops table, postcode rules, create form) | 6 | ⏳ open | `feature/007-create-shop` | #005 | — | 2026-09-28 14:02 |
+| 008 | Edit my shop, the seller checklist and the public shop page | 7 | 🔒 blocked | `feature/008-edit-shop-and-public-page` | #007 | — | 2026-09-28 14:02 |
+| 009 | Verify my Australian mobile by SMS code | 8 | 🔒 blocked | `feature/009-phone-verification` | #008 | — | 2026-09-28 14:02 |
+| 010 | Submit my shop for approval | 9 | 🔒 blocked | `feature/010-submit-shop-for-approval` | #009 | — | 2026-09-28 14:02 |
+| 011 | Admin area and the pending-shops queue | 10 | 🔒 blocked | `feature/011-admin-area-and-shop-queue` | #010 | — | 2026-09-28 14:02 |
+| 012 | Approve or reject a shop, with audit log and emails | 11 | 🔒 blocked | `feature/012-admin-approve-reject-shop` | #011, #006 | — | 2026-09-28 14:02 |
+| 013 | Car-only make and model reference data | 6 | ⏳ open | `feature/013-vehicle-reference-data` | #005 | — | 2026-09-28 14:02 |
+| 014 | Listings table, VIN rules and the draft API | 7 | 🔒 blocked | `feature/014-listings-table-and-draft-api` | #013, #007 | — | 2026-09-28 14:02 |
+| 015 | Seller listings dashboard and the car listing form | 8 | 🔒 blocked | `feature/015-listing-draft-form` | #014, #008 | — | 2026-09-28 14:02 |
+| 016 | Photo tables, private quarantine storage and the upload API | 8 | 🔒 blocked | `feature/016-photo-upload-api` | #014 | — | 2026-09-28 14:02 |
+| 017 | Image decision table, fake providers and test fixtures | 2 | ✅ merged | `feature/017-image-decision-table-and-fakes` | #001 | — | 2026-09-28 14:02 |
+| 018 | Image verification job: validate, fingerprint, check, decide, clean and publish | 9 | 🔒 blocked | `feature/018-image-verification-pipeline` | #016, #017, #006 | — | 2026-09-28 14:02 |
+| 019 | Claude car-check and Sightengine AI-check providers | 3 | 🔒 blocked | `feature/019-real-image-check-providers` | #017 | — | 2026-09-28 14:02 |
+| 020 | Photo uploader with live check status, HEIC conversion and reordering | 9 | 🔒 blocked | `feature/020-photo-uploader-ui` | #016, #015 | — | 2026-09-28 14:02 |
+| 021 | Submit a listing and go live automatically | 12 | 🔒 blocked | `feature/021-submit-listing-and-go-live` | #018, #020, #012 | — | 2026-09-28 14:02 |
+| 022 | Listing detail API (public vs owner) and listing status emails | 13 | ⏳ open | `feature/022-listing-view-api-and-emails` | #021 | — | 2026-09-28 14:02 |
+| 023 | Edit a live listing (minor vs identity changes, live photo rules) | 14 | 🔒 blocked | `feature/023-edit-live-listing` | #022 | — | 2026-09-28 14:02 |
+| 024 | Mark a listing sold, and unpublish removed or old sold listings | 15 | 🔒 blocked | `feature/024-mark-sold-and-unpublish` | #023 | — | 2026-09-28 14:02 |
+| 025 | Listing expiry, reminder emails and renewal | 16 | 🔒 blocked | `feature/025-expiry-reminders-and-renew` | #024 | — | 2026-09-28 14:02 |
+| 026 | Search service and public search API | 14 | 🔒 blocked | `feature/026-search-service-and-api` | #022 | — | 2026-09-28 14:02 |
+| 027 | /cars search page with filters, and the home page | 15 | 🔒 blocked | `feature/027-cars-search-page-and-home` | #026 | — | 2026-09-28 14:02 |
+| 028 | Public listing detail page (gallery, specs, VIN/PPSR, shop card, SOLD) | 16 | 🔒 blocked | `feature/028-listing-detail-page` | #027 | — | 2026-09-28 14:02 |
+| 029 | Saved cars (watchlist) | 17 | 🔒 blocked | `feature/029-saved-cars` | #028 | — | 2026-09-28 14:02 |
+| 030 | SEO metadata, sitemap, robots and site footer | 18 | 🔒 blocked | `feature/030-seo-metadata-footer` | #029 | — | 2026-09-28 14:02 |
+| 031 | Legal and trust pages | 19 | 🔒 blocked | `feature/031-legal-and-trust-pages` | #030 | — | 2026-09-28 14:02 |
+| 032 | End-to-end journeys and accessibility checks | 20 | 🔒 blocked | `feature/032-e2e-journeys-and-accessibility` | #031 | — | 2026-09-28 14:02 |
+| 033 | Conversations and messages: schema, rules and API | 14 | 🔒 blocked | `feature/033-conversations-schema-and-service` | #022 | — | 2026-09-28 14:02 |
+| 034 | 'Message seller' button and the buyer inbox | 19 | 🔒 blocked | `feature/034-message-seller-ui-and-buyer-inbox` | #033, #030 | — | 2026-09-28 14:02 |
+| 035 | Seller inbox and replies | 20 | 🔒 blocked | `feature/035-seller-inbox` | #034 | — | 2026-09-28 14:02 |
+| 036 | New-message email alerts and message rate limit | 21 | 🔒 blocked | `feature/036-message-email-alerts` | #035 | — | 2026-09-28 14:02 |
+| 037 | Show seller phone to signed-in buyers (opt-in) | 22 | 🔒 blocked | `feature/037-show-seller-phone` | #036 | — | 2026-09-28 14:02 |
+| 038 | Block a conversation | 23 | 🔒 blocked | `feature/038-block-conversation` | #037 | — | 2026-09-28 14:02 |
+| 039 | Admin image review queue with evidence | 13 | 🔒 blocked | `feature/039-admin-image-review-queue` | #021, #012 | — | 2026-09-28 14:02 |
+| 040 | Admin approve or reject a reviewed photo | 17 | 🔒 blocked | `feature/040-admin-approve-reject-photo` | #039, #025 | — | 2026-09-28 14:02 |
+| 041 | Duplicate-VIN and 'Other' make/model review queues | 18 | 🔒 blocked | `feature/041-admin-listing-review-queues` | #040 | — | 2026-09-28 14:02 |
+| 042 | Clear review flags, reject or remove listings | 19 | 🔒 blocked | `feature/042-admin-listing-actions` | #041 | — | 2026-09-28 14:02 |
+| 043 | Report a listing or shop, and auto-hide at 3 reports | 24 | 🔒 blocked | `feature/043-reports-and-auto-hide` | #042, #038 | — | 2026-09-28 14:02 |
+| 044 | Reports queue for admins, and reporting conversations | 25 | 🔒 blocked | `feature/044-reports-queue-and-conversation-reports` | #043 | — | 2026-09-28 14:02 |
+| 045 | Suspend and unsuspend shops and users, and set listing caps | 26 | 🔒 blocked | `feature/045-suspensions-and-listing-caps` | #044 | — | 2026-09-28 14:02 |
+| 046 | Admin settings: image-check thresholds and limits | 27 | 🔒 blocked | `feature/046-admin-settings` | #045 | — | 2026-09-28 14:02 |
+| 047 | Admin audit log | 28 | 🔒 blocked | `feature/047-audit-log` | #046 | — | 2026-09-28 14:02 |
 
-## Last refreshed: 2026-09-28 13:55
+## Last refreshed: 2026-09-28 14:02

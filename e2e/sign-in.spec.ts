@@ -11,10 +11,10 @@ test('a member signs in, sees their email in the header and signs out', async ({
 
   await page.getByLabel('Password').fill(user.password)
   await page.getByRole('button', { name: 'Sign in' }).click()
-  await page.waitForURL('**/cars')
+  await page.waitForURL('**/cars', { waitUntil: 'commit' })
   await expect(page.getByRole('banner').getByText(user.email)).toBeVisible()
 
   await page.getByRole('button', { name: 'Sign out' }).click()
-  await page.waitForURL((url) => url.pathname === '/')
+  await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'commit' })
   await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
 })

@@ -45,6 +45,8 @@ As a user, I want to create my shop, so that I can start selling cars.
 - tests/services/shop.service.test.ts
 - tests/rls/shops.test.ts
 
+- [ ] The migration replaces the placeholder `current_user_has_shop()` from issue 005 (`create or replace`) so it returns true when the caller owns a shop; GET /api/profile/me then reports has_shop correctly
+
 ## Out of Scope
 - Editing a shop and the public page (issue 008)
 - Submitting for approval (issue 010)
