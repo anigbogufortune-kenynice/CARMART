@@ -40,6 +40,10 @@ As a seller, I want my photos checked automatically within seconds; as a buyer, 
 - src/server/jobs/image-verification/publish.ts: upload/delete public variants
 - src/app/api/internal/process-image-checks/route.ts
 - src/app/api/internal/unpublish-image/route.ts
+- scripts/generate-fixtures.ts + tests/fixtures/images/*: seed-driven shapes so distinct fixtures have distinct pHashes (they collided at distance 6)
+- package.json: exifr (camera metadata signals and the INV-I2 test)
+- supabase migration also: `image_checks.thresholds` (INV-I3), `invoke_internal_job(path, body)`, `find_phash_match`, `requeue_image_check`, and `delete_listing_image` now unpublishes passed photos
+- issues/open/020-photo-uploader-ui.md: notes from 016
 
 **Test files (in scope):**
 - src/server/jobs/image-verification/process-image.test.ts

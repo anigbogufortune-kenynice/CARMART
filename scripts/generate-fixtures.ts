@@ -9,7 +9,7 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import sharp from 'sharp'
+import sharp, { type OverlayOptions } from 'sharp'
 
 const OUT = 'tests/fixtures/images'
 const W = 1600
@@ -66,12 +66,36 @@ function background(width: number, height: number, seed: number): Buffer {
   return buf
 }
 
+/**
+ * Large seed-driven shapes give every fixture its own structure, so their perceptual hashes
+ * are far apart (noise alone averages out and every fixture would hash alike). The shapes
+ * stay clear of the top-left marker block.
+ */
+async function shapes(seed: number, width: number, height: number) {
+  const rand = prng(seed * 7919)
+  const out: OverlayOptions[] = []
+  for (let i = 0; i < 6; i++) {
+    const w = Math.round(width * (0.15 + rand() * 0.35))
+    const h = Math.round(height * (0.15 + rand() * 0.35))
+    const left = Math.round(width * 0.15 + rand() * (width * 0.85 - w))
+    const top = Math.round(rand() * (height - h))
+    const shade = Math.round(rand() * 255)
+    const input = await sharp({ create: { width: w, height: h, channels: 3, background: { r: shade, g: 255 - shade, b: Math.round(rand() * 255) } } }).png().toBuffer()
+    out.push({ input, left, top })
+  }
+  return out
+}
+
 async function photo(seed: number, marker: [number, number, number] | null, width = W, height = H) {
   const block = Math.round(width * 0.12)
-  const composite = marker
-    ? [{ input: await sharp({ create: { width: block, height: block, channels: 3, background: { r: marker[0], g: marker[1], b: marker[2] } } }).png().toBuffer(), left: 0, top: 0 }]
-    : []
-  return sharp(background(width, height, seed), { raw: { width, height, channels: 3 } }).composite(composite)
+  const composite: OverlayOptions[] = await shapes(seed, width, height)
+  if (marker) {
+    const input = await sharp({ create: { width: block, height: block, channels: 3, background: { r: marker[0], g: marker[1], b: marker[2] } } }).png().toBuffer()
+    composite.push({ input, left: 0, top: 0 })
+  }
+  // Flatten the composite first so later steps (withExif, animation frames) see one image.
+  const flat = await sharp(background(width, height, seed), { raw: { width, height, channels: 3 } }).composite(composite).png().toBuffer()
+  return sharp(flat)
 }
 
 async function main() {
