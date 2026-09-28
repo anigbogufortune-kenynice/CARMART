@@ -29,7 +29,7 @@ As a seller, I want to pick my car's make and model from a list, so that my list
 
 ## Files to Modify
 - supabase/migrations/20260928001300_vehicle_reference.sql
-- supabase/seed.sql: append makes/models (idempotent `on conflict do nothing`)
+- scripts/data/vehicle-reference.json: source list the migration's data block is generated from (reference data lives in the migration, not seed.sql, so production gets it)
 - src/services/listing.service.ts: `listMakes`, `listModels` (file created here)
 - src/app/api/vehicle-makes/route.ts
 - src/app/api/vehicle-makes/[makeId]/models/route.ts
@@ -37,6 +37,7 @@ As a seller, I want to pick my car's make and model from a list, so that my list
 **Test files (in scope):**
 - tests/services/vehicle-reference.test.ts
 - tests/seed/vehicle-seed.test.ts
+- e2e/vehicle-reference.spec.ts (route checks need a request scope for cookies())
 
 ## Out of Scope
 - Admin editing of makes/models (the 'Other' review covers new makes in v1)
@@ -49,14 +50,14 @@ File:   migration
 
 Step 2: Seed coverage
 Test 2: tests/seed/vehicle-seed.test.ts → count(makes) ≥ 40, count(models) ≥ 400; 'Toyota' has models 'HiLux', 'LandCruiser', 'Corolla', 'RAV4'; 'Ford' has 'Ranger'; no make in ['Kenworth','Mack','Harley-Davidson','Jayco','Yamaha'] exists
-File:   supabase/seed.sql
+File:   migration (data block)
 
 Step 3: listMakes/listModels
 Test 3: `listMakes(anon)` → ok, first item alphabetically ('Abarth' or 'Alfa Romeo'); `listModels(anon, randomUuid)` → `{ ok: false, error: { code: 'NOT_FOUND' } }`
 File:   src/services/listing.service.ts
 
 Step 4: Routes
-Test 4: GET /api/vehicle-makes → 200 `{ data: [{ id, name }] }`; GET /api/vehicle-makes/<bad uuid>/models → 422
+Test 4: e2e/vehicle-reference.spec.ts → GET /api/vehicle-makes → 200 `{ data: [{ id, name }] }`; GET /api/vehicle-makes/<bad uuid>/models → 422
 File:   routes
 
 ## How to Test
