@@ -52,15 +52,15 @@ describe('quarantine storage and photo rows', () => {
     expect((await step('admin read', adminDb().from('image_checks').select('id').eq('image_id', imageId))).data).toHaveLength(1)
   })
 
-  // A denied direct upload of a large body stalls the local storage server (it rejects before reading
-  // the body), so the probe uses a tiny body and the denied-upload checks sit at the end of the file.
+  // Storage write permission is probed by signing: signing runs the same INSERT policy as a direct
+  // upload, and an RLS-denied direct upload stalls the local storage server instead of answering.
   it('no foreign upload URLs, no overwrite through a re-used token, no client writes to listing-public', async () => {
     const { db, path, token, listingId } = await uploadedPhoto()
     const other = await asUser(await createUser({ email: 'b@x.au' }))
     expect((await step('foreign sign', other.storage.from('listing-quarantine').createSignedUploadUrl(path))).error).not.toBeNull()
     const again = await step('reuse token', db.storage.from('listing-quarantine').uploadToSignedUrl(path, token, PHOTO, { contentType: 'image/jpeg' }))
     expect(again.error).not.toBeNull()
-    const pub = await step('public upload', db.storage.from('listing-public').upload(`${listingId}/x-sm.webp`, Buffer.from('RIFF0000WEBP'), { contentType: 'image/webp' }), 20000)
+    const pub = await step('public sign', db.storage.from('listing-public').createSignedUploadUrl(`${listingId}/x-sm.webp`))
     expect(pub.error).not.toBeNull()
   })
 })
