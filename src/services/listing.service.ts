@@ -1,4 +1,9 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import type { z } from 'zod'
+import { isPostcodeInState, type AuState } from '@/lib/au-postcode'
+import {
+  ListingDraftSchema, ListingPatchSchema, type ListingDraftInput, type ListingPatchInput, type ListingStatus,
+} from '@/types/domain'
 import { err, ok, type AppError, type Result } from '@/types/result'
 
 /**
@@ -33,4 +38,153 @@ export async function listModels(db: SupabaseClient, makeId: string): Promise<Re
     .order('name')
   if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
   return ok(data ?? [])
+}
+
+// ── Drafts (docs/api-contracts.md → POST/PATCH/DELETE /api/listings) ──────────────────────────
+
+/** Owner view of a listing (docs/api-contracts.md → Listing). */
+export type Listing = {
+  id: string
+  shop_id: string
+  make_id: string | null
+  model_id: string | null
+  make_other: string | null
+  model_other: string | null
+  year: number | null
+  odometer_km: number | null
+  price_cents: number | null
+  currency: string
+  body_type: string | null
+  transmission: string | null
+  fuel: string | null
+  colour: string | null
+  vin: string | null
+  rego: string | null
+  rego_expiry: string | null
+  description: string
+  state: AuState | null
+  suburb: string | null
+  postcode: string | null
+  status: ListingStatus
+  status_reason: string | null
+  review_flags: string[]
+  submitted_at: string | null
+  live_at: string | null
+  expires_at: string | null
+  sold_at: string | null
+  version: number
+  created_at: string
+  updated_at: string
+}
+
+const LISTING_COLUMNS =
+  'id,shop_id,make_id,model_id,make_other,model_other,year,odometer_km,price_cents,currency,body_type,transmission,fuel,' +
+  'colour,vin,rego,rego_expiry,description,state,suburb,postcode,status,status_reason,review_flags,submitted_at,live_at,' +
+  'expires_at,sold_at,version,created_at,updated_at'
+
+/** Statuses whose fields the owner may freely edit (live edits arrive in issue 023). */
+const DRAFT_EDITABLE: ListingStatus[] = ['draft', 'rejected', 'expired']
+
+function validationError(error: z.ZodError): AppError {
+  const coded = error.issues.find((i) => /^[A-Z][A-Z0-9_]+$/.test(i.message))
+  if (coded) return { code: coded.message, message: coded.message }
+  const first = error.issues[0]
+  return { code: 'VALIDATION_ERROR', message: `${first?.path.join('.') || 'body'}: ${first?.message ?? 'invalid'}` }
+}
+
+function mapWriteError(error: PostgrestError): AppError {
+  const m = error.message
+  if (m.includes('listings_vin_format')) return { code: 'INVALID_VIN', message: 'Enter a 17-character VIN (no I, O or Q)' }
+  if (m.includes('listings_postcode_matches_state')) return { code: 'POSTCODE_STATE_MISMATCH', message: 'That postcode is not in the selected state' }
+  if (m.includes('listings_make_one_of')) return { code: 'MAKE_REQUIRED', message: 'Choose a make or enter one, not both' }
+  if (m.includes('listings_model_one_of')) return { code: 'MODEL_REQUIRED', message: 'Choose a model or enter one, not both' }
+  if (m.includes('listings_model_make_mismatch')) return { code: 'VALIDATION_ERROR', message: 'That model doesn’t belong to the selected make' }
+  if (m.includes('listings_year_range')) return { code: 'VALIDATION_ERROR', message: 'Year can’t be more than one year ahead' }
+  if (error.code === '23503') return { code: 'VALIDATION_ERROR', message: 'Unknown make or model' }
+  if (error.code === '23514' || error.code === '22P02') return { code: 'VALIDATION_ERROR', message: m }
+  if (error.code === '42501') return { code: 'FORBIDDEN', message: 'You cannot change this listing' }
+  return { code: 'INTERNAL_ERROR', message: m }
+}
+
+type CallerShop = { id: string; status: string }
+
+async function callerShop(db: SupabaseClient): Promise<Result<CallerShop, AppError>> {
+  const { data: auth } = await db.auth.getUser()
+  if (!auth.user) return err({ code: 'UNAUTHENTICATED', message: 'Sign in to continue' })
+  const { data, error } = await db.from('shops').select('id,status').eq('owner_id', auth.user.id).maybeSingle()
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  if (!data) return err({ code: 'SHOP_NOT_FOUND', message: 'Create your shop first' })
+  return ok(data)
+}
+
+async function ownListing(db: SupabaseClient, id: string): Promise<Result<{ shop: CallerShop; listing: Listing }, AppError>> {
+  const shop = await callerShop(db)
+  if (!shop.ok) return shop.error.code === 'SHOP_NOT_FOUND' ? err({ code: 'NOT_FOUND', message: 'Listing not found' }) : shop
+  const { data, error } = await db.from('listings').select(LISTING_COLUMNS).eq('id', id).eq('shop_id', shop.value.id).maybeSingle()
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  if (!data) return err({ code: 'NOT_FOUND', message: 'Listing not found' })
+  return ok({ shop: shop.value, listing: data as unknown as Listing })
+}
+
+/** Create a draft for the caller's shop. Any subset of fields; each one present is validated. */
+export async function createDraft(db: SupabaseClient, input: ListingDraftInput): Promise<Result<Listing, AppError>> {
+  const parsed = ListingDraftSchema.safeParse(input)
+  if (!parsed.success) return err(validationError(parsed.error))
+  const shop = await callerShop(db)
+  if (!shop.ok) return shop
+  if (shop.value.status === 'suspended') return err({ code: 'FORBIDDEN', message: 'Your shop is suspended' })
+  const { data, error } = await db
+    .from('listings')
+    .insert({ ...parsed.data, shop_id: shop.value.id })
+    .select(LISTING_COLUMNS)
+    .single()
+  if (error) return err(mapWriteError(error))
+  return ok(data as unknown as Listing)
+}
+
+/**
+ * Update a draft (or a rejected/expired listing). `version` must match (BR-L10) but is not
+ * incremented: versions change only on status transitions.
+ */
+export async function updateDraft(db: SupabaseClient, id: string, patch: ListingPatchInput): Promise<Result<Listing, AppError>> {
+  const parsed = ListingPatchSchema.safeParse(patch)
+  if (!parsed.success) return err(validationError(parsed.error))
+  const found = await ownListing(db, id)
+  if (!found.ok) return found
+  const { listing, shop } = found.value
+  if (shop.status === 'suspended') return err({ code: 'FORBIDDEN', message: 'Your shop is suspended' })
+  if (!DRAFT_EDITABLE.includes(listing.status)) {
+    return err({ code: 'INVALID_STATE', message: `A ${listing.status.replace('_', ' ')} listing can’t be edited here` })
+  }
+  const { version, ...fields } = parsed.data
+  if (version !== listing.version) return err({ code: 'VERSION_CONFLICT', message: 'This listing changed. Reload and try again.' })
+
+  const merged = { ...listing, ...fields }
+  if (merged.state && merged.postcode && !isPostcodeInState(merged.postcode, merged.state)) {
+    return err({ code: 'POSTCODE_STATE_MISMATCH', message: 'That postcode is not in the selected state' })
+  }
+  if (merged.make_id && merged.make_other) return err({ code: 'MAKE_REQUIRED', message: 'Choose a make or enter one, not both' })
+  if (merged.model_id && merged.model_other) return err({ code: 'MODEL_REQUIRED', message: 'Choose a model or enter one, not both' })
+
+  const { data, error } = await db
+    .from('listings')
+    .update(fields)
+    .eq('id', id)
+    .eq('version', version)
+    .select(LISTING_COLUMNS)
+    .maybeSingle()
+  if (error) return err(mapWriteError(error))
+  if (!data) return err({ code: 'VERSION_CONFLICT', message: 'This listing changed. Reload and try again.' })
+  return ok(data as unknown as Listing)
+}
+
+/** Delete a draft. Any other status → INVALID_STATE. */
+export async function deleteDraft(db: SupabaseClient, id: string): Promise<Result<null, AppError>> {
+  const found = await ownListing(db, id)
+  if (!found.ok) return found
+  if (found.value.listing.status !== 'draft') return err({ code: 'INVALID_STATE', message: 'Only drafts can be deleted' })
+  const { error, count } = await db.from('listings').delete({ count: 'exact' }).eq('id', id).eq('status', 'draft')
+  if (error) return err(mapWriteError(error))
+  if (!count) return err({ code: 'INVALID_STATE', message: 'Only drafts can be deleted' })
+  return ok(null)
 }

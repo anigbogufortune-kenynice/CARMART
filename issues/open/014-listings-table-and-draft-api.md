@@ -40,11 +40,16 @@ As a shop owner, I want to save a car listing as a draft, so that I can finish i
 - src/services/listing.service.ts: `createDraft`, `updateDraft`, `deleteDraft`
 - src/app/api/listings/route.ts: POST
 - src/app/api/listings/[id]/route.ts: PATCH, DELETE
+- src/lib/api/route-helpers.ts: a Zod issue whose message is an error code (INVALID_VIN, MAKE_REQUIRED, POSTCODE_STATE_MISMATCH) becomes the response code
+- docs/schema.md: drafts may be incomplete (nullable car fields + listings_complete_unless_draft); search_vector is trigger-maintained
 
 **Test files (in scope):**
 - src/lib/vin.test.ts
 - tests/services/listing-draft.test.ts
 - tests/rls/listings.test.ts
+- src/types/listing-input.test.ts
+- src/lib/api/route-helpers.test.ts
+- e2e/listing-drafts.spec.ts (routes need a request scope)
 
 ## Out of Scope
 - Submit and status transitions (021)

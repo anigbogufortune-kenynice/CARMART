@@ -41,6 +41,13 @@ describe('withRoute: parsing', () => {
     expect(r.body.error.message).toContain('a')
   })
 
+  it('an issue whose message is an error code becomes the response code', async () => {
+    const coded = withRoute({ auth: 'public', body: z.object({ v: z.string().length(3, 'INVALID_VIN') }) }, async ({ body }) => ok(body))
+    const r = await json(await coded(post({ v: 'toolong' }), ctx))
+    expect(r.status).toBe(422)
+    expect(r.body.error.code).toBe('INVALID_VIN')
+  })
+
   it('rejects unknown keys on strict bodies', async () => {
     expect((await route(post({ a: 'x', extra: 1 }), ctx)).status).toBe(422)
   })
