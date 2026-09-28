@@ -18,8 +18,10 @@ async function listingWithPhotos(email = 'a@x.au') {
     listing_id: draft.value.id, shop_id: shop.value.id, position: i, quarantine_path: `${shop.value.id}/${draft.value.id}/p${i}`,
     mime_type: 'image/jpeg', bytes: 1000, status: 'checking',
   }))
-  const { data } = await adminDb().from('listing_images').insert(rows).select('id').order('position')
-  const [a, b, c] = data!.map((r) => r.id as string)
+  const inserted = await adminDb().from('listing_images').insert(rows)
+  if (inserted.error) throw new Error(inserted.error.message)
+  const { data } = await adminDb().from('listing_images').select('id').eq('listing_id', draft.value.id).order('position')
+  const [a, b, c] = (data ?? []).map((r) => r.id as string)
   return { db, listingId: draft.value.id, a, b, c }
 }
 
