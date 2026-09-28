@@ -31,7 +31,7 @@ test('a visitor signs up, confirms by email and lands signed in', async ({ page,
   expect(link, 'confirmation link in email').toBeTruthy()
 
   await page.goto(link!)
-  await page.waitForURL((url) => url.pathname === '/')
+  await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'commit' })
   const cookies = await context.cookies()
   expect(cookies.some((c) => /^sb-.*-auth-token/.test(c.name))).toBe(true)
 })

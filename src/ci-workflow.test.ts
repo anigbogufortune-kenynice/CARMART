@@ -11,8 +11,9 @@ describe('CI workflow', () => {
     expect(wf.on.push.branches).toEqual(['main'])
   })
 
-  it('runs the gates in order: lint → type-check → unit → supabase → integration → e2e → build', () => {
-    const order = ['Lint', 'Type-check', 'Unit tests', 'Start Supabase', 'Reset database', 'Integration tests', 'E2E tests', 'Build']
+  it('runs the gates in order: lint → type-check → unit → supabase → integration → build → e2e', () => {
+    // E2E runs against the production build (next start), so Build comes first.
+    const order = ['Lint', 'Type-check', 'Unit tests', 'Start Supabase', 'Reset database', 'Integration tests', 'Build', 'E2E tests']
     const idx = order.map((n) => names.indexOf(n))
     expect(idx.every((i) => i >= 0)).toBe(true)
     expect([...idx].sort((a, b) => a - b)).toEqual(idx)

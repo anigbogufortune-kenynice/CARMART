@@ -9,6 +9,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  timeout: 60_000,
   reporter: process.env.CI ? [['github'], ['json'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL,
@@ -17,7 +18,8 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm run dev',
+    // CI tests the production build (built in the previous CI step); locally, the dev server.
+    command: process.env.CI ? 'npm run start' : 'npm run dev',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

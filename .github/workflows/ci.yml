@@ -62,6 +62,9 @@ jobs:
       - name: Integration tests
         run: npm run test:integration -- --reporter=default --reporter=github-actions --reporter=json --outputFile.json=reports/integration.json
 
+      - name: Build
+        run: npm run build
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
@@ -96,5 +99,3 @@ jobs:
           path: playwright-report
           retention-days: 7
 
-      - name: Build
-        run: npm run build
