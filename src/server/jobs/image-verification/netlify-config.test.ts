@@ -22,4 +22,12 @@ describe('Netlify configuration (ADR-014)', () => {
     expect(fn).toContain('background: true')
     expect(fn).toContain('INTERNAL_JOB_SECRET')
   })
+
+  it('the secret scanner skips only public values and switches, never real secrets', () => {
+    const keys = /SECRETS_SCAN_OMIT_KEYS = "([^"]+)"/.exec(toml)?.[1].split(',') ?? []
+    expect(keys).toContain('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    for (const secret of ['SUPABASE_SERVICE_ROLE_KEY', 'INTERNAL_JOB_SECRET', 'ANTHROPIC_API_KEY', 'SIGHTENGINE_API_SECRET', 'RESEND_API_KEY']) {
+      expect(keys).not.toContain(secret)
+    }
+  })
 })
