@@ -16,5 +16,5 @@ test('a member signs in, sees their email in the header and signs out', async ({
 
   await page.getByRole('button', { name: 'Sign out' }).click()
   await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'commit' })
-  await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in' })).toBeVisible()
 })
