@@ -115,7 +115,7 @@ The worst outcome wins: rejected > in_review > passed.
 
 **Date:** 2026-09-28 · **Status:** accepted · **Source:** Q19
 
-**Decision:** Supabase production and staging in `ap-southeast-2` (Sydney). Vercel functions pinned to `syd1`.
+**Decision:** Supabase production and staging in `ap-southeast-2` (Sydney). Netlify functions pinned to `syd` on the Pro plan (ADR-014; originally Vercel `syd1`).
 **Consequences:** Low latency for Australian users, and data stays onshore.
 
 ## ADR-013: Hive backup provider deferred
@@ -125,3 +125,12 @@ The worst outcome wins: rejected > in_review > passed.
 **Context:** Hive's public API documentation couldn't be confirmed while writing the specs, and a second AI vendor isn't needed to launch.
 **Decision:** v1 ships the `AiCheckProvider` interface with Sightengine and the fake provider only. Hive is added later as one provider file, when a fallback is actually needed.
 **Consequences:** If Sightengine is down, photos go to `in_review` after 3 attempts (D9) instead of failing over automatically.
+
+## ADR-014: Host the app on Netlify
+
+**Date:** 2026-10-03 · **Status:** accepted · **Source:** owner request (supersedes the Vercel choice in ADR-012)
+
+**Context:** The owner wants CarMart on Netlify. Netlify runs Next.js 14 through its OpenNext adapter with no configuration, and allows 60 s per synchronous request. Its Next.js guide lists `sharp` (a native module) as unsupported inside the Next.js server, while plain Netlify Functions can ship it with `external_node_modules`. The photo pipeline depends on `sharp`.
+**Decision:** The Next.js app (pages, `/api/*`, middleware) deploys to Netlify as-is. Photo checks run in the Netlify **background function** `netlify/functions/process-image-checks.mts` (up to 15 minutes; it drains the queue). Postgres finds it through the Vault setting `image_check_path` (`/.netlify/functions/process-image-checks`), set with `configure_internal_jobs(base_url, secret, image_check_path)`. Without that setting Postgres calls the Next.js route `/api/internal/process-image-checks`, which local stacks and CI keep using. Email dispatch and unpublishing stay as Next.js routes (no native modules, well under 60 s).
+**Consequences:** One extra entry point for the same pipeline code (`src/server/jobs/image-verification/background.ts`). Functions run in US East (Ohio) unless the site is on Netlify Pro with the region set to Sydney (`syd`), which matters because every request talks to the Sydney database. The first production deploy must be checked by uploading a photo and watching it reach `passed`.
+
