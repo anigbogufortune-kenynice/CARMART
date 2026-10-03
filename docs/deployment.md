@@ -5,7 +5,7 @@
 
 ## 1. Create the Supabase project (once)
 
-1. At supabase.com → **New project**. Region: **Sydney (eu-west-2)**. Save the database password.
+1. At supabase.com → **New project**. Region: **London (eu-west-2)**. Save the database password.
 2. **Project Settings → API**: copy the **Project URL**, the **anon** key and the **service_role** key.
 3. Apply the database (tables, security rules, storage buckets, car makes and models) from your computer, in the project folder:
    ```
@@ -17,7 +17,7 @@
 4. **Authentication → URL Configuration**:
    - Site URL: your Netlify address, e.g. `https://carmart.netlify.app`
    - Redirect URLs: add `https://carmart.netlify.app/**`, plus `https://deploy-preview-*--carmart.netlify.app/**` if you want sign-in to work on deploy previews
-5. **Authentication → Providers → Phone**: connect Twilio (AU sender). Shops need a verified mobile before approval.
+5. **Authentication → Providers → Phone**: connect Twilio (a sender that can reach Nigerian +234 numbers). Shops need a verified mobile before approval.
 
 ## 2. Create the Netlify site (once)
 
@@ -42,7 +42,7 @@
 
 For a private test site without vendor accounts you can use `CAR_CHECK_PROVIDER=fake`, `AI_CHECK_PROVIDER=fake` and `EMAIL_PROVIDER=log`. **The fake checks pass every photo**, so never use them on a public site.
 
-4. **Pro plan only (recommended):** Cloud compute → Functions → Region → **Asia Pacific (Sydney)**, then redeploy. Every request talks to the Sydney database, and the default region is US East.
+4. **Pro plan only (recommended):** Cloud compute → Functions → Region → **EU (London)** or the nearest European region, then redeploy. Every request talks to the London database, and the default region is US East.
 
 ## 3. Connect the database to the site (once, after the first deploy)
 
