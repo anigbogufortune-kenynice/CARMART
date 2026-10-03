@@ -8,18 +8,18 @@ const valid = {
   model_other: null,
   year: 2019,
   odometer_km: 84_000,
-  price_cents: 4_599_000,
-  body_type: 'ute',
+  price_cents: 1_850_000_000,
+  condition: 'foreign_used',
+  body_type: 'pickup',
   transmission: 'automatic',
   fuel: 'diesel',
   colour: 'White',
   vin: 'jtfst22p900123456',
-  rego: 'abc123',
+  rego: 'lnd-123-aa',
   rego_expiry: '2027-03-01',
   description: 'One owner, full service history.',
-  state: 'QLD',
-  suburb: 'Toowoomba',
-  postcode: '4350',
+  state: 'Lagos',
+  city: 'Ikeja',
 }
 
 const messages = (r: { success: boolean; error?: { issues: { message: string }[] } }) =>
@@ -29,7 +29,7 @@ describe('ListingInputSchema', () => {
   it('parses a complete listing and normalises VIN and rego', () => {
     const r = ListingInputSchema.safeParse(valid)
     expect(r.success).toBe(true)
-    expect(r.data).toMatchObject({ vin: 'JTFST22P900123456', rego: 'ABC123' })
+    expect(r.data).toMatchObject({ vin: 'JTFST22P900123456', rego: 'LND123AA' })
   })
 
   it('MAKE_REQUIRED when both or neither of make_id/make_other are set', () => {
@@ -45,7 +45,10 @@ describe('ListingInputSchema', () => {
     const y = new Date().getFullYear()
     expect(ListingInputSchema.safeParse({ ...valid, year: y + 2 }).success).toBe(false)
     expect(ListingInputSchema.safeParse({ ...valid, year: y + 1 }).success).toBe(true)
-    expect(ListingInputSchema.safeParse({ ...valid, price_cents: 50 }).success).toBe(false)
+    expect(ListingInputSchema.safeParse({ ...valid, price_cents: 50_000 }).success).toBe(false)
+    expect(ListingInputSchema.safeParse({ ...valid, condition: 'used' }).success).toBe(false)
+    expect(ListingInputSchema.safeParse({ ...valid, condition: undefined }).success).toBe(false)
+    expect(ListingInputSchema.safeParse({ ...valid, state: 'NSW' }).success).toBe(false)
     expect(ListingInputSchema.safeParse({ ...valid, body_type: 'truck' }).success).toBe(false)
   })
 
@@ -53,9 +56,6 @@ describe('ListingInputSchema', () => {
     expect(messages(ListingInputSchema.safeParse({ ...valid, vin: 'BAD' }))).toEqual(['INVALID_VIN'])
   })
 
-  it('POSTCODE_STATE_MISMATCH when the postcode is outside the state', () => {
-    expect(messages(ListingInputSchema.safeParse({ ...valid, postcode: '3000' }))).toContain('POSTCODE_STATE_MISMATCH')
-  })
 })
 
 describe('ListingDraftSchema (partial)', () => {
@@ -67,7 +67,7 @@ describe('ListingDraftSchema (partial)', () => {
     expect(messages(ListingDraftSchema.safeParse({ vin: 'BAD' }))).toEqual(['INVALID_VIN'])
     expect(ListingDraftSchema.safeParse({ body_type: 'truck' }).success).toBe(false)
     expect(messages(ListingDraftSchema.safeParse({ make_id: valid.make_id, make_other: 'X' }))).toContain('MAKE_REQUIRED')
-    expect(messages(ListingDraftSchema.safeParse({ state: 'NSW', postcode: '3000' }))).toContain('POSTCODE_STATE_MISMATCH')
+    expect(ListingDraftSchema.safeParse({ postcode: '2150' }).success).toBe(false)
   })
   it('rejects unknown keys such as status', () => {
     expect(ListingDraftSchema.safeParse({ status: 'live' }).success).toBe(false)

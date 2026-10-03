@@ -1,5 +1,7 @@
 # Issue 027: /cars search page with filters, and the home page
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 **Epic:** E03-car-search-and-discovery
 **Feature:** E03-car-search-and-discovery/F01-search-and-filter
 **Type:** AFK
@@ -23,8 +25,8 @@ As a visitor, I want an easy search page and a useful home page, so that I can s
 
 ## Acceptance Criteria
 - [ ] /cars is server-rendered from the URL query (calls searchListings directly); changing a filter updates the URL (router.replace) and results
-- [ ] The filter panel: make → model (dependent), price range, year range, max km, body type, transmission, fuel, state, suburb/postcode; 'Clear filters'; on mobile it's a slide-over drawer
-- [ ] Result cards: first photo (sm WebP, lazy, with alt '2019 Toyota HiLux'), title, price (A$45,990), km, suburb/state, 'Verified shop' badge
+- [ ] The filter panel: make → model (dependent), price range, year range, max km, body type, transmission, fuel, state, city/postcode; 'Clear filters'; on mobile it's a slide-over drawer
+- [ ] Result cards: first photo (sm WebP, lazy, with alt '2019 Toyota HiLux'), title, price (A$45,990), km, city/state, 'Verified shop' badge
 - [ ] Pagination (prev/next + page numbers) and a sort select; an empty state with a 'Clear filters' button
 - [ ] The home page has a search bar (keyword + make + state) → /cars?..., the latest 12 live cars and a 'Sell your car' CTA → /sell
 

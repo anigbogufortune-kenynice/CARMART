@@ -1,5 +1,7 @@
 # System Spec: Listing Lifecycle
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 > Source: `issues/prd-carmart.md` (Q7, Q8, Q15; AC-11 to AC-17, AC-30 to AC-38)
 > Status: draft
 
@@ -62,7 +64,7 @@ stateDiagram-v2
 | `draft`, `rejected` | `submit` | owner; shop `approved`; all required fields valid; 4–20 non-deleted photos; active count < `listing_cap`; no *own* active listing with the same VIN | set `submitted_at`; add `duplicate_vin` flag if another shop's listing with this VIN is `checking`/`in_review`/`live`; add `other_make_model` if make/model is "Other"; enqueue checks for photos not yet `passed`; `evaluate_listing` | `checking` (then per evaluate) |
 | `expired` | `renew` | owner; shop `approved`; cap | same as submit (re-checks the VIN duplicate); all photos are re-queued for checking (thresholds or vendors may have changed); `expires_at` reset when it goes live | `checking` |
 | `checking`, `in_review` | `evaluate` | — | see **Evaluate rules** | `live` / `in_review` / `rejected` / unchanged |
-| `live` | `edit_minor` | owner; fields ⊆ {colour, rego, rego_expiry, description, price_cents, odometer_km, suburb, postcode, state} | update; version++ | `live` |
+| `live` | `edit_minor` | owner; fields ⊆ {colour, rego, rego_expiry, description, price_cents, odometer_km, city, postcode, state} | update; version++ | `live` |
 | `live` | `edit_identity` | owner; any of {vin, make_*, model_*, year} changed | update; re-run the duplicate-VIN check; version++; `evaluate` | `checking` |
 | `live` | `add_photo` | owner; total non-deleted ≤ 20 | photo `checking`; the listing **stays live**; the new photo stays private until it passes | `live` |
 | `live` | `report_threshold` | ≥ `reports_auto_hide_count` open reports from distinct users | add flag `reports_threshold` | `in_review` |

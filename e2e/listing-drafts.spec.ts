@@ -11,7 +11,7 @@ test('draft API: validation codes, patch and delete', async ({ page }) => {
   const api = page.request
 
   const shop = await api.post('/api/shops', {
-    data: { name: 'Draft Motors', slug: `draft-motors-${Date.now()}`, suburb: 'Parramatta', state: 'NSW', postcode: '2150' },
+    data: { name: 'Draft Motors', slug: `draft-motors-${Date.now()}`, city: 'Ikeja', state: 'Lagos' },
   })
   expect(shop.status()).toBe(201)
 
@@ -20,14 +20,14 @@ test('draft API: validation codes, patch and delete', async ({ page }) => {
   expect((await bad.json()).error.code).toBe('INVALID_VIN')
   expect((await api.post('/api/listings', { data: { body_type: 'truck' } })).status()).toBe(422)
 
-  const created = await api.post('/api/listings', { data: { vin: 'jtfst22p900123456', state: 'NSW', postcode: '2150' } })
+  const created = await api.post('/api/listings', { data: { vin: 'jtfst22p900123456', state: 'Lagos', city: 'Ikeja' } })
   expect(created.status()).toBe(201)
   const draft = (await created.json()).data
   expect(draft).toMatchObject({ status: 'draft', vin: 'JTFST22P900123456' })
 
-  const mismatch = await api.patch(`/api/listings/${draft.id}`, { data: { version: 1, postcode: '3000', state: 'NSW' } })
-  expect(mismatch.status()).toBe(422)
-  expect((await mismatch.json()).error.code).toBe('POSTCODE_STATE_MISMATCH')
+  const foreign = await api.patch(`/api/listings/${draft.id}`, { data: { version: 1, state: 'NSW' } })
+  expect(foreign.status()).toBe(422)
+  expect((await foreign.json()).error.code).toBe('VALIDATION_ERROR')
 
   expect((await api.delete(`/api/listings/${draft.id}`)).status()).toBe(204)
   expect((await api.delete(`/api/listings/${draft.id}`)).status()).toBe(404)

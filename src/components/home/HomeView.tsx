@@ -1,17 +1,18 @@
 import '@fontsource-variable/archivo/wdth.css'
 import Link from 'next/link'
-import { AU_STATES, BODY_TYPES, BODY_TYPE_LABELS } from '@/types/domain'
+import { BODY_TYPES, BODY_TYPE_LABELS, CONDITIONS, CONDITION_LABELS, NG_STATES, stateLabel } from '@/types/domain'
 
 /**
- * CarMart home: search first (like the big Australian marketplaces), then browsing shortcuts,
+ * CarMart home: search first (like the big car marketplaces), then browsing shortcuts,
  * what makes CarMart different, a seller prompt and the footer.
  * Palette: bottle green #14284B (the only dark band), brass #B8924F accents, stone #FFFFFF, white.
  */
 
 export type HomeMake = { id: string; name: string }
 
-const POPULAR = ['Toyota', 'Ford', 'Mazda', 'Hyundai', 'Kia', 'Mitsubishi', 'Volkswagen', 'Nissan', 'Subaru', 'Isuzu', 'Tesla', 'BMW']
-const PRICES = [10_000, 20_000, 30_000, 40_000, 50_000, 75_000, 100_000]
+const POPULAR = ['Toyota', 'Lexus', 'Honda', 'Mercedes-Benz', 'Hyundai', 'Kia', 'Ford', 'Nissan', 'Acura', 'Peugeot', 'Innoson', 'Land Rover']
+/** Naira; sent to search in kobo. */
+const PRICES = [2_000_000, 5_000_000, 10_000_000, 20_000_000, 30_000_000, 50_000_000, 100_000_000]
 const display = { fontFamily: "'Archivo Variable', var(--font-geist-sans), sans-serif", fontStretch: '125%' } as const
 
 const field = 'mt-1 block w-full rounded-md border border-[#CBD3DF] bg-white px-3 py-2.5 text-[15px] text-[#1B2333] focus:border-[#14284B] focus:outline-none focus:ring-2 focus:ring-[#B8924F]/40'
@@ -30,24 +31,24 @@ function SearchPanel({ makes }: { makes: HomeMake[] }) {
           </select>
         </div>
         <div>
-          <label htmlFor="search-body" className={label}>Body type</label>
-          <select id="search-body" name="body_type" defaultValue="" className={field}>
-            <option value="">Any body type</option>
-            {BODY_TYPES.map((b) => <option key={b} value={b}>{BODY_TYPE_LABELS[b]}</option>)}
+          <label htmlFor="search-condition" className={label}>Condition</label>
+          <select id="search-condition" name="condition" defaultValue="" className={field}>
+            <option value="">Any condition</option>
+            {CONDITIONS.map((c) => <option key={c} value={c}>{CONDITION_LABELS[c]}</option>)}
           </select>
         </div>
         <div>
           <label htmlFor="search-price" className={label}>Price up to</label>
           <select id="search-price" name="price_max" defaultValue="" className={field}>
             <option value="">Any price</option>
-            {PRICES.map((p) => <option key={p} value={p * 100}>{`$${p.toLocaleString('en-AU')}`}</option>)}
+            {PRICES.map((p) => <option key={p} value={p * 100}>{`₦${p.toLocaleString('en-NG')}`}</option>)}
           </select>
         </div>
         <div>
           <label htmlFor="search-state" className={label}>State</label>
           <select id="search-state" name="state" defaultValue="" className={field}>
-            <option value="">All of Australia</option>
-            {AU_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            <option value="">All of Nigeria</option>
+            {NG_STATES.map((s) => <option key={s} value={s}>{stateLabel(s)}</option>)}
           </select>
         </div>
         <button type="submit"
@@ -62,7 +63,7 @@ function SearchPanel({ makes }: { makes: HomeMake[] }) {
 const REASONS = [
   {
     title: 'Every seller is verified',
-    body: 'Shops confirm an Australian mobile number and are approved by our team before any car goes on sale.',
+    body: 'Shops confirm a Nigerian mobile number and are approved by our team before any car goes on sale.',
   },
   {
     title: 'Real photos of the real car',
@@ -70,7 +71,7 @@ const REASONS = [
   },
   {
     title: 'History you can check',
-    body: 'Every listing shows the VIN, so you can run a PPSR check for finance owing or write-offs before you buy.',
+    body: 'Every listing shows the VIN, so you can check the car’s history before you pay. For foreign used cars, a Carfax report shows past accidents and mileage.',
   },
 ]
 
@@ -86,7 +87,7 @@ export function HomeView({ makes }: { makes: HomeMake[] }) {
             Find your next car.
           </h1>
           <p className="mt-4 max-w-[36rem] text-lg leading-relaxed text-[#C8D4E6]">
-            From Australian sellers we’ve verified, with every photo checked before you see it.
+            From Nigerian sellers we’ve verified, with every photo checked before you see it.
           </p>
           <div className="mt-9">
             <SearchPanel makes={makes} />
@@ -162,8 +163,8 @@ export function HomeView({ makes }: { makes: HomeMake[] }) {
             </nav>
           </div>
           <div className="text-sm leading-relaxed text-[#5A6578]">
-            <p>CarMart acknowledges the Traditional Custodians of Country throughout Australia and pays respect to Elders past and present.</p>
-            <p className="mt-3">© {new Date().getFullYear()} CarMart. Cars only, from verified Australian sellers.</p>
+            <p>Buy safely: inspect the car and its papers in person, and only pay once you’re satisfied. CarMart never asks you to pay a deposit through the site.</p>
+            <p className="mt-3">© {new Date().getFullYear()} CarMart. Cars only, from verified Nigerian sellers.</p>
           </div>
         </div>
       </footer>

@@ -266,8 +266,8 @@ max_frequency = "5s"
 # Use pre-defined map of phone number to OTP for testing.
 # Local/CI only: fixed OTPs for test numbers, so no SMS is ever sent (docs/env.md).
 [auth.sms.test_otp]
-61400000000 = "123456"
-61400000001 = "123456"
+2348000000000 = "123456"
+2348000000001 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]

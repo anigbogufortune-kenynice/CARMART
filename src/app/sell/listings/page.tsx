@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { formatDate, formatNaira } from '@/lib/format'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase/server'
@@ -14,10 +15,8 @@ const CHIP: Record<ListingStatus, string> = {
   expired: 'bg-gray-100 text-gray-700', removed: 'bg-red-100 text-red-900',
 }
 
-const aud = (cents: number | null) =>
-  cents == null ? '—' : (cents / 100).toLocaleString('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 })
-const day = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Australia/Sydney' })
+const naira = (kobo: number | null) => formatNaira(kobo)
+const day = (iso: string) => formatDate(iso)
 
 export default async function SellListingsPage() {
   const db = createServerSupabase()
@@ -59,7 +58,7 @@ export default async function SellListingsPage() {
                 <td className="py-3 pr-4">
                   <Link href={`/sell/listings/${l.id}`} className="font-medium underline-offset-2 hover:underline">{l.title}</Link>
                 </td>
-                <td className="py-3 pr-4 tabular-nums">{aud(l.price_cents)}</td>
+                <td className="py-3 pr-4 tabular-nums">{naira(l.price_cents)}</td>
                 <td className="py-3 pr-4">
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${CHIP[l.status]}`}>{LISTING_STATUS_LABELS[l.status]}</span>
                 </td>

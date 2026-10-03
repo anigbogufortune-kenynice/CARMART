@@ -10,7 +10,7 @@ test('a complete listing with four passing photos goes live on submit', async ({
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.waitForURL((url) => url.pathname.startsWith('/sell'), { waitUntil: 'commit' })
   const shop = await (await page.request.post('/api/shops', {
-    data: { name: 'Live Motors', slug: `live-${Date.now()}`, suburb: 'Toowoomba', state: 'QLD', postcode: '4350' },
+    data: { name: 'Live Motors', slug: `live-${Date.now()}`, city: 'Wuse', state: 'FCT' },
   })).json()
   await e2eAdmin().from('shops').update({ status: 'approved' }).eq('id', shop.data.id)
 
@@ -21,8 +21,8 @@ test('a complete listing with four passing photos goes live on submit', async ({
   const draft = await (await page.request.post('/api/listings', {
     data: {
       make_id: toyota.id, make_other: null, model_id: models.find((m) => m.name === 'HiLux')!.id, model_other: null,
-      year: 2019, odometer_km: 84000, price_cents: 4599000, body_type: 'ute', transmission: 'automatic', fuel: 'diesel',
-      colour: 'White', vin, state: 'QLD', suburb: 'Toowoomba', postcode: '4350',
+      year: 2019, odometer_km: 84000, price_cents: 1850000000, condition: 'foreign_used', body_type: 'pickup', transmission: 'automatic', fuel: 'diesel',
+      colour: 'White', vin, state: 'FCT', city: 'Wuse',
     },
   })).json()
 

@@ -9,14 +9,14 @@ afterEach(async () => {
 async function ownerWithShop(email: string, slug: string) {
   const user = await createUser({ email })
   const db = await asUser(user)
-  const shop = await createShop(db, { name: 'Coastal Cars', slug, suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+  const shop = await createShop(db, { name: 'Coastal Cars', slug, city: 'Ikeja', state: 'Lagos' })
   if (!shop.ok) throw new Error(shop.error.message)
   return { db, shopId: shop.value.id }
 }
 
 const complete = {
-  make_other: 'Holden', model_other: 'Kingswood', year: 1975, odometer_km: 100_000, price_cents: 1_500_000,
-  body_type: 'sedan', transmission: 'manual', fuel: 'petrol', colour: 'Red', state: 'NSW', suburb: 'Parramatta', postcode: '2150',
+  make_other: 'Holden', model_other: 'Kingswood', year: 1975, odometer_km: 100_000, price_cents: 350_000_000, condition: 'nigerian_used',
+  body_type: 'sedan', transmission: 'manual', fuel: 'petrol', colour: 'Red', state: 'Lagos', city: 'Ikeja',
 }
 
 describe('listings RLS and constraints', () => {
@@ -24,7 +24,7 @@ describe('listings RLS and constraints', () => {
     const { db, shopId } = await ownerWithShop('a@x.au', 'coastal-cars')
     const ins = await db.from('listings').insert({ shop_id: shopId, vin: 'JTFST22P900123456' }).select('id,status,currency').single()
     expect(ins.error).toBeNull()
-    expect(ins.data).toMatchObject({ status: 'draft', currency: 'AUD' })
+    expect(ins.data).toMatchObject({ status: 'draft', currency: 'NGN' })
 
     const other = await asUser(await createUser({ email: 'b@x.au' }))
     expect((await other.from('listings').select('id')).data ?? []).toHaveLength(0)

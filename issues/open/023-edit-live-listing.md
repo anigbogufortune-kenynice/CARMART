@@ -1,5 +1,7 @@
 # Issue 023: Edit a live listing (minor vs identity changes, live photo rules)
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 **Epic:** E02-car-listings-with-verified-photos
 **Feature:** E02-car-listings-with-verified-photos/F04-manage-live-listings
 **Type:** AFK
@@ -26,7 +28,7 @@ As a shop owner, I want to update my live listing without taking it down unneces
 - docs/systems/image-verification.md: photos on live listings (Evaluate rules, live section)
 
 ## Acceptance Criteria
-- [ ] PATCH on live with only minor fields (colour, rego, rego_expiry, description, price_cents, odometer_km, suburb, postcode, state) keeps it live, and the change is visible publicly at once
+- [ ] PATCH on live with only minor fields (colour, rego, rego_expiry, description, price_cents, odometer_km, city, postcode, state) keeps it live, and the change is visible publicly at once
 - [ ] PATCH changing vin/make/model/year on live → `update_listing_identity` RPC → checking (leaves public view), the duplicate-VIN check re-runs, version++
 - [ ] PATCH on checking/in_review/sold/removed → 409 INVALID_STATE; a stale version → 409 VERSION_CONFLICT
 - [ ] Adding a photo to a live listing keeps the listing live; the new photo is hidden until passed; deleting a photo that would leave < 4 passed → 422 PHOTO_COUNT

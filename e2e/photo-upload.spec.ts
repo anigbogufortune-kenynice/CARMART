@@ -12,7 +12,7 @@ async function sellerWithDraft(page: Page, tag: string) {
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.waitForURL((url) => url.pathname.startsWith('/sell'), { waitUntil: 'commit' })
   const shop = await page.request.post('/api/shops', {
-    data: { name: 'Photo Motors', slug: `${tag}-${Date.now()}`, suburb: 'Parramatta', state: 'NSW', postcode: '2150' },
+    data: { name: 'Photo Motors', slug: `${tag}-${Date.now()}`, city: 'Ikeja', state: 'Lagos' },
   })
   expect(shop.status()).toBe(201)
   const draft = await page.request.post('/api/listings', { data: {} })

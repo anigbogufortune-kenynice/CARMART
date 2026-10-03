@@ -6,7 +6,7 @@ afterEach(async () => {
   await resetDb()
 })
 
-const TEST_PHONE = '+61400000000' // supabase/config.toml [auth.sms.test_otp] → 123456
+const TEST_PHONE = '+2348000000000' // supabase/config.toml [auth.sms.test_otp] → 123456
 
 describe('phone verification (issue 009)', () => {
   it('sends a code and verifies it; the profile records the E.164 phone', async () => {
@@ -29,11 +29,11 @@ describe('phone verification (issue 009)', () => {
     const u = await createUser({ email: 'c@x.au' })
     const rows = Array.from({ length: 5 }, () => ({ user_id: u.id }))
     expect((await adminDb().from('phone_code_requests').insert(rows)).error).toBeNull()
-    expect(await sendPhoneCode(await asUser(u), '+61400000001')).toMatchObject({ ok: false, error: { code: 'RATE_LIMITED' } })
+    expect(await sendPhoneCode(await asUser(u), '+2348000000001')).toMatchObject({ ok: false, error: { code: 'RATE_LIMITED' } })
   })
 
   it('rejects numbers that are not Australian mobiles', async () => {
     const db = await asUser(await createUser({ email: 'd@x.au' }))
-    expect(await sendPhoneCode(db, '+61212345678')).toMatchObject({ ok: false, error: { code: 'INVALID_AU_MOBILE' } })
+    expect(await sendPhoneCode(db, '+2341234567890')).toMatchObject({ ok: false, error: { code: 'INVALID_NG_MOBILE' } })
   })
 })

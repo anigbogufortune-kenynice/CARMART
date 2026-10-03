@@ -1,8 +1,7 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import type { z } from 'zod'
-import { isPostcodeInState, type AuState } from '@/lib/au-postcode'
 import {
-  ListingDraftSchema, ListingPatchSchema, type ListingDraftInput, type ListingPatchInput, type ListingStatus,
+  ListingDraftSchema, ListingPatchSchema, type ListingDraftInput, type ListingPatchInput, type ListingStatus, type NgState,
 } from '@/types/domain'
 import { err, ok, type AppError, type Page, type Result } from '@/types/result'
 
@@ -53,6 +52,7 @@ export type Listing = {
   year: number | null
   odometer_km: number | null
   price_cents: number | null
+  condition: string | null
   currency: string
   body_type: string | null
   transmission: string | null
@@ -62,9 +62,8 @@ export type Listing = {
   rego: string | null
   rego_expiry: string | null
   description: string
-  state: AuState | null
-  suburb: string | null
-  postcode: string | null
+  state: NgState | null
+  city: string | null
   status: ListingStatus
   status_reason: string | null
   review_flags: string[]
@@ -78,8 +77,8 @@ export type Listing = {
 }
 
 const LISTING_COLUMNS =
-  'id,shop_id,make_id,model_id,make_other,model_other,year,odometer_km,price_cents,currency,body_type,transmission,fuel,' +
-  'colour,vin,rego,rego_expiry,description,state,suburb,postcode,status,status_reason,review_flags,submitted_at,live_at,' +
+  'id,shop_id,make_id,model_id,make_other,model_other,year,odometer_km,price_cents,currency,condition,body_type,transmission,fuel,' +
+  'colour,vin,rego,rego_expiry,description,state,city,status,status_reason,review_flags,submitted_at,live_at,' +
   'expires_at,sold_at,version,created_at,updated_at'
 
 /** Statuses whose fields the owner may freely edit (live edits arrive in issue 023). */
@@ -95,7 +94,6 @@ function validationError(error: z.ZodError): AppError {
 function mapWriteError(error: PostgrestError): AppError {
   const m = error.message
   if (m.includes('listings_vin_format')) return { code: 'INVALID_VIN', message: 'Enter a 17-character VIN (no I, O or Q)' }
-  if (m.includes('listings_postcode_matches_state')) return { code: 'POSTCODE_STATE_MISMATCH', message: 'That postcode is not in the selected state' }
   if (m.includes('listings_make_one_of')) return { code: 'MAKE_REQUIRED', message: 'Choose a make or enter one, not both' }
   if (m.includes('listings_model_one_of')) return { code: 'MODEL_REQUIRED', message: 'Choose a model or enter one, not both' }
   if (m.includes('listings_model_make_mismatch')) return { code: 'VALIDATION_ERROR', message: 'That model doesn’t belong to the selected make' }
@@ -160,9 +158,6 @@ export async function updateDraft(db: SupabaseClient, id: string, patch: Listing
   if (version !== listing.version) return err({ code: 'VERSION_CONFLICT', message: 'This listing changed. Reload and try again.' })
 
   const merged = { ...listing, ...fields }
-  if (merged.state && merged.postcode && !isPostcodeInState(merged.postcode, merged.state)) {
-    return err({ code: 'POSTCODE_STATE_MISMATCH', message: 'That postcode is not in the selected state' })
-  }
   if (merged.make_id && merged.make_other) return err({ code: 'MAKE_REQUIRED', message: 'Choose a make or enter one, not both' })
   if (merged.model_id && merged.model_other) return err({ code: 'MODEL_REQUIRED', message: 'Choose a model or enter one, not both' })
 

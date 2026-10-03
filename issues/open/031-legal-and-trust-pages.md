@@ -1,5 +1,7 @@
 # Issue 031: Legal and trust pages
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 **Epic:** E03-car-search-and-discovery
 **Feature:** E03-car-search-and-discovery/F04-seo-a11y-legal
 **Type:** AFK
@@ -18,7 +20,7 @@ As a buyer or seller, I want to understand the rules and how to stay safe, so th
 
 ### Structural specs
 - issues/ISSUE_CONVENTIONS.md: file scope, test commands, migration naming
-- docs/auth.md: Privacy (Australian Privacy Act)
+- docs/auth.md: Privacy (Nigerian Privacy Act)
 - docs/decisions.md: ADR-001, ADR-003
 - issues/prd-carmart.md: Out of Scope, Implementation Decisions
 - docs/architecture.md: Launch checklist (lawyer review)
@@ -28,7 +30,7 @@ As a buyer or seller, I want to understand the rules and how to stay safe, so th
 - [ ] Every page shows a visible banner in non-production environments: 'Draft — pending legal review'
 - [ ] Prohibited Listings says explicitly: cars only (the list of allowed body types); no trucks, buses, motorbikes, caravans, boats, parts; only real photos of the actual car; AI-generated or stock images are prohibited and may lead to removal or suspension
 - [ ] Buyer Safety: inspect before paying, run the VIN on PPSR, never pay deposits to unverified parties or off-platform strangers, how to report
-- [ ] Privacy: what's collected (account, phone for sellers, messages, photos), metadata stripped from photos, data hosted in Australia, access/deletion requests via the support email
+- [ ] Privacy: what's collected (account, phone for sellers, messages, photos), metadata stripped from photos, data hosted in Nigeria, access/deletion requests via the support email
 - [ ] Terms: CarMart is a listing platform and isn't a party to sales (ADR-001); how photo checks work and that they aren't a guarantee (ADR-003)
 
 ## Files to Modify
@@ -61,7 +63,7 @@ Test 3: contains a link to https://www.ppsr.gov.au/ and the phrase 'inspect the 
 File:   buyer-safety/page.tsx
 
 Step 4: Privacy, Terms, Contact
-Test 4: Privacy contains 'stored in Australia' and the support email; Terms contains 'not a party to any sale'; Contact renders a mailto link to NEXT_PUBLIC_SUPPORT_EMAIL
+Test 4: Privacy contains 'stored in Nigeria' and the support email; Terms contains 'not a party to any sale'; Contact renders a mailto link to NEXT_PUBLIC_SUPPORT_EMAIL
 File:   privacy, terms, contact pages
 
 ## How to Test

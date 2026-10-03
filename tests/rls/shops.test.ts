@@ -6,7 +6,7 @@ afterEach(async () => {
 })
 
 const shop = (ownerId: string, slug = 'coastal-cars') => ({
-  owner_id: ownerId, name: 'Coastal Cars', slug, suburb: 'Parramatta', state: 'NSW', postcode: '2150',
+  owner_id: ownerId, name: 'Coastal Cars', slug, city: 'Ikeja', state: 'Lagos',
 })
 
 describe('shops RLS', () => {

@@ -1,5 +1,7 @@
 # Issue 037: Show seller phone to signed-in buyers (opt-in)
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 **Epic:** E04-buyer-seller-messaging
 **Feature:** E04-buyer-seller-messaging/F03-phone-reveal-and-block
 **Type:** AFK

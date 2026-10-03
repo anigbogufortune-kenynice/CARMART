@@ -5,7 +5,7 @@
 
 ## 1. Create the Supabase project (once)
 
-1. At supabase.com → **New project**. Region: **Sydney (ap-southeast-2)**. Save the database password.
+1. At supabase.com → **New project**. Region: **Sydney (eu-west-2)**. Save the database password.
 2. **Project Settings → API**: copy the **Project URL**, the **anon** key and the **service_role** key.
 3. Apply the database (tables, security rules, storage buckets, car makes and models) from your computer, in the project folder:
    ```

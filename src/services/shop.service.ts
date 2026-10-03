@@ -1,6 +1,5 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
-import { isPostcodeInState } from '@/lib/au-postcode'
-import { ShopCreateSchema, ShopUpdateSchema, type AU_STATES, type ShopCreateInput, type ShopStatus, type ShopUpdateInput } from '@/types/domain'
+import { ShopCreateSchema, ShopUpdateSchema, type ShopCreateInput, type ShopStatus, type ShopUpdateInput } from '@/types/domain'
 import { err, ok, type AppError, type Result } from '@/types/result'
 
 /** Owner/admin view of a shop (docs/api-contracts.md → Shop response shape). */
@@ -9,9 +8,8 @@ export type Shop = {
   name: string
   slug: string
   description: string | null
-  suburb: string
+  city: string
   state: string
-  postcode: string
   status: ShopStatus
   status_reason: string | null
   verified: boolean
@@ -22,7 +20,7 @@ export type Shop = {
 }
 
 const OWNER_COLUMNS =
-  'id,name,slug,description,suburb,state,postcode,status,status_reason,show_phone,listing_cap,created_at,owner:profiles!shops_owner_id_fkey(phone_verified_at)'
+  'id,name,slug,description,city,state,status,status_reason,show_phone,listing_cap,created_at,owner:profiles!shops_owner_id_fkey(phone_verified_at)'
 
 type ShopRow = Omit<Shop, 'verified' | 'active_listing_count'> & { owner: { phone_verified_at: string | null } | null }
 
@@ -38,9 +36,6 @@ function mapWriteError(error: PostgrestError): AppError {
   if (error.code === '23505' && error.message.includes('shops_slug_key')) {
     return { code: 'SLUG_TAKEN', message: 'That web address is taken' }
   }
-  if (error.message.includes('shops_postcode_matches_state')) {
-    return { code: 'POSTCODE_STATE_MISMATCH', message: 'That postcode is not in the selected state' }
-  }
   if (error.message.includes('SLUG_LOCKED')) {
     return { code: 'SLUG_LOCKED', message: 'The web address can’t be changed after you submit your shop' }
   }
@@ -51,9 +46,6 @@ function mapWriteError(error: PostgrestError): AppError {
 export async function createShop(db: SupabaseClient, input: ShopCreateInput): Promise<Result<Shop, AppError>> {
   const parsed = ShopCreateSchema.safeParse(input)
   if (!parsed.success) return err({ code: 'VALIDATION_ERROR', message: parsed.error.issues[0].message })
-  if (!isPostcodeInState(parsed.data.postcode, parsed.data.state)) {
-    return err({ code: 'POSTCODE_STATE_MISMATCH', message: 'That postcode is not in the selected state' })
-  }
   const { data: auth } = await db.auth.getUser()
   if (!auth.user) return err({ code: 'UNAUTHENTICATED', message: 'Sign in to continue' })
 
@@ -84,11 +76,6 @@ export async function updateMyShop(db: SupabaseClient, patch: ShopUpdateInput): 
   if (shop.status === 'suspended') return err({ code: 'FORBIDDEN', message: 'This shop is suspended' })
 
   const next = parsed.data
-  const state = (next.state ?? shop.state) as (typeof AU_STATES)[number]
-  const postcode = next.postcode ?? shop.postcode
-  if ((next.state || next.postcode) && !isPostcodeInState(postcode, state)) {
-    return err({ code: 'POSTCODE_STATE_MISMATCH', message: 'That postcode is not in the selected state' })
-  }
   if (Object.keys(next).length === 0) return ok(shop)
 
   const { data, error } = await db.from('shops').update(next).eq('id', shop.id).select(OWNER_COLUMNS).single()
@@ -102,9 +89,8 @@ export type PublicShop = {
   name: string
   slug: string
   description: string | null
-  suburb: string
+  city: string
   state: string
-  postcode: string
   created_at: string
   verified: boolean
 }
@@ -112,7 +98,7 @@ export type PublicShop = {
 export async function getPublicShopBySlug(db: SupabaseClient, slug: string): Promise<Result<PublicShop, AppError>> {
   const { data, error } = await db
     .from('public_shops')
-    .select('id,name,slug,description,suburb,state,postcode,created_at,verified')
+    .select('id,name,slug,description,city,state,created_at,verified')
     .eq('slug', slug)
     .maybeSingle()
   if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })

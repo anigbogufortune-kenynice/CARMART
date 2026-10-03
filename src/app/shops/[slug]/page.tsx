@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { formatDate } from '@/lib/format'
 import { notFound } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { getPublicShopBySlug } from '@/services/shop.service'
@@ -9,7 +10,7 @@ const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('')
 
 const memberSince = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-AU', { month: 'long', year: 'numeric', timeZone: 'Australia/Sydney' })
+  formatDate(iso, { month: 'long', year: 'numeric' })
 
 export default async function PublicShopPage({ params }: { params: { slug: string } }) {
   const shop = await getPublicShopBySlug(createServerSupabase(), params.slug)
@@ -24,7 +25,7 @@ export default async function PublicShopPage({ params }: { params: { slug: strin
         </div>
         <div>
           <h1 className="text-2xl font-semibold">{s.name}</h1>
-          <p className="text-gray-600">{s.suburb}, {s.state} · Member since {memberSince(s.created_at)}</p>
+          <p className="text-gray-600">{s.city}, {s.state} · Member since {memberSince(s.created_at)}</p>
           {s.verified && (
             <p className="mt-1 inline-block rounded bg-green-50 px-2 py-0.5 text-sm font-medium text-green-800">✓ Verified shop</p>
           )}

@@ -1,4 +1,5 @@
 import type { ImageStatus, ListingStatus } from '@/types/domain'
+import { formatDate } from '@/lib/format'
 
 type Props = {
   status: ListingStatus
@@ -17,8 +18,7 @@ const FLAG_TEXT: Record<string, string> = {
 const PHOTO_REVIEW = 'Some photos are being double-checked — usually within a day'
 const PHOTOS_REJECTED = 'One or more photos were rejected'
 
-const day = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Australia/Sydney' })
+const day = (iso: string) => formatDate(iso)
 
 export function ListingStatusBanner({ status, statusReason, reviewFlags, liveAt, photos }: Props) {
   const box = 'mt-4 rounded px-4 py-3 text-sm'

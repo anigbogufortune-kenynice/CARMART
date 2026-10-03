@@ -10,7 +10,7 @@ afterEach(async () => {
 
 async function listingWithPhotos(email = 'a@x.au') {
   const db = await asUser(await createUser({ email }))
-  const shop = await createShop(db, { name: 'Coastal Cars', slug: `shop-${email.split('@')[0]}`, suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+  const shop = await createShop(db, { name: 'Coastal Cars', slug: `shop-${email.split('@')[0]}`, city: 'Ikeja', state: 'Lagos' })
   if (!shop.ok) throw new Error(shop.error.message)
   const draft = await createDraft(db, {})
   if (!draft.ok) throw new Error(draft.error.message)

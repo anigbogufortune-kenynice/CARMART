@@ -6,7 +6,7 @@ test('an admin approves a pending shop and it goes public', async ({ page }) => 
   const slug = `e2e-cars-${Date.now()}`
   const { data: shop } = await e2eAdmin()
     .from('shops')
-    .insert({ owner_id: owner.id, name: 'E2E Cars', slug, suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+    .insert({ owner_id: owner.id, name: 'E2E Cars', slug, city: 'Ikeja', state: 'Lagos' })
     .select('id')
     .single()
   await e2eAdmin().from('shops').update({ status: 'pending_approval', submitted_at: new Date().toISOString() }).eq('id', shop!.id)

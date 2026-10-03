@@ -1,5 +1,7 @@
 # Project: CarMart
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 ## Stack
 - Frontend: Next.js 14 (App Router), React 18
 - Backend: Supabase (Postgres, Auth, Storage, Edge Functions)
@@ -38,7 +40,7 @@ or fragment logic across many small files.
 - `src/lib/supabase/`                  — user-scoped Supabase clients (server, browser, middleware)
 - `src/lib/api/route-helpers.ts`       — shared handler plumbing (parse, auth, Result → HTTP)
 - `src/lib/env.ts` / `src/lib/logger.ts` — validated env (Zod) / structured logger
-- `src/lib/vin.ts`, `src/lib/au-postcode.ts` — domain validation
+- `src/lib/vin.ts` — VIN validation; `src/lib/format.ts` — naira and Lagos-time display (ADR-015)
 - `src/components/`                    — UI components, co-located tests
 - `src/types/`                         — `result.ts` (Result<T, AppError>), `domain.ts` (enums + Zod schemas)
 - `supabase/migrations/`               — SQL migrations (`20260928NNNN00_<slug>.sql`, NNNN = issue number)

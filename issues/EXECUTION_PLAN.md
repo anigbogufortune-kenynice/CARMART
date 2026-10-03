@@ -1,5 +1,7 @@
 # Execution Plan
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 > Generated from `issues/open/` by /plan-issues. Regenerate with `/plan-issues` if issues change.
 
 **Total issues:** 47 AFK + 0 Human-in-loop
@@ -19,7 +21,7 @@ graph TD
   006["#006 · P3 · Job runner foundation and email di…"]
   007["#007 · P6 · Create my shop (shops table, postc…"]
   008["#008 · P7 · Edit my shop, the seller checklist…"]
-  009["#009 · P8 · Verify my Australian mobile by SMS…"]
+  009["#009 · P8 · Verify my Nigerian mobile by SMS…"]
   010["#010 · P9 · Submit my shop for approval"]
   011["#011 · P10 · Admin area and the pending-shops q…"]
   012["#012 · P11 · Approve or reject a shop, with aud…"]
@@ -211,7 +213,7 @@ Colours = epics (green E01 shops, purple E02 listings/photos, amber E03 search, 
 
 | # | Title | Branch | Priority |
 |---|---|---|---|
-| 009 | Verify my Australian mobile by SMS code | feature/009-phone-verification | high |
+| 009 | Verify my Nigerian mobile by SMS code | feature/009-phone-verification | high |
 | 015 | Seller listings dashboard and the car listing form | feature/015-listing-draft-form | high |
 | 016 | Photo tables, private quarantine storage and the upload API | feature/016-photo-upload-api | critical |
 

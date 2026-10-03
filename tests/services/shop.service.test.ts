@@ -7,7 +7,7 @@ afterEach(async () => {
   await resetDb()
 })
 
-const input = { name: 'Coastal Cars', slug: 'coastal-cars', suburb: 'Parramatta', state: 'NSW' as const, postcode: '2150' }
+const input = { name: 'Coastal Cars', slug: 'coastal-cars', city: 'Ikeja', state: 'Lagos' as const }
 
 describe('shop.service createShop / getMyShop', () => {
   it('creates a draft shop for the caller', async () => {
@@ -30,11 +30,14 @@ describe('shop.service createShop / getMyShop', () => {
     expect(await createShop(db, input)).toMatchObject({ ok: false, error: { code: 'SLUG_TAKEN' } })
   })
 
-  it('POSTCODE_STATE_MISMATCH; ACT 2600 accepted', async () => {
+  it('accepts the FCT and refuses a state outside Nigeria; country and currency are Nigerian', async () => {
     const db = await asUser(await createUser({ email: 'a@x.au' }))
-    expect(await createShop(db, { ...input, postcode: '3000' })).toMatchObject({ ok: false, error: { code: 'POSTCODE_STATE_MISMATCH' } })
-    expect(await createShop(db, { ...input, state: 'ACT', postcode: '2600' })).toMatchObject({ ok: true })
+    expect(await createShop(db, { ...input, state: 'NSW' as 'Lagos' })).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } })
+    expect(await createShop(db, { ...input, state: 'FCT', city: 'Garki' })).toMatchObject({ ok: true, value: { state: 'FCT', city: 'Garki' } })
+    const row = await adminDb().from('shops').select('country,currency').eq('slug', input.slug).single()
+    expect(row.data).toEqual({ country: 'NG', currency: 'NGN' })
   })
+
 
   it('getMyShop → NOT_FOUND without a shop', async () => {
     const db = await asUser(await createUser({ email: 'a@x.au' }))
@@ -71,11 +74,6 @@ describe('shop.service updateMyShop / getPublicShopBySlug (issue 008)', () => {
     expect(await updateMyShop(db, { slug: 'new-slug' })).toMatchObject({ ok: false, error: { code: 'SLUG_LOCKED' } })
   })
 
-  it('POSTCODE_STATE_MISMATCH on edit', async () => {
-    const db = await asUser(await createUser({ email: 'a@x.au' }))
-    await createShop(db, input)
-    expect(await updateMyShop(db, { postcode: '3000' })).toMatchObject({ ok: false, error: { code: 'POSTCODE_STATE_MISMATCH' } })
-  })
 
   it('public view: drafts are NOT_FOUND; approved shops expose no private fields', async () => {
     const owner = await createUser({ email: 'a@x.au' })
@@ -87,7 +85,7 @@ describe('shop.service updateMyShop / getPublicShopBySlug (issue 008)', () => {
     const unverified = await getPublicShopBySlug(anonDb(), 'coastal-cars')
     expect(unverified).toMatchObject({ ok: true, value: { name: 'Coastal Cars', verified: false } })
 
-    await adminDb().from('profiles').update({ phone: '+61400000000', phone_verified_at: new Date().toISOString() }).eq('id', owner.id)
+    await adminDb().from('profiles').update({ phone: '+2348000000000', phone_verified_at: new Date().toISOString() }).eq('id', owner.id)
     const verified = await getPublicShopBySlug(anonDb(), 'coastal-cars')
     expect(verified).toMatchObject({ ok: true, value: { verified: true } })
     const keys = verified.ok ? Object.keys(verified.value) : []

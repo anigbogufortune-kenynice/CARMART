@@ -23,7 +23,7 @@ As CarMart, I want Google and social apps to show our cars properly, so that buy
 
 ## Acceptance Criteria
 - [ ] /cars/[id] `generateMetadata`: title '2019 Toyota HiLux SR5 – A$45,990 | CarMart', a description (km, location), OG image = the first photo's lg URL, canonical `${SITE_URL}/cars/<id>`; a non-visible listing → notFound
-- [ ] /shops/[slug] metadata: '<Shop name> – Verified car seller in <Suburb> | CarMart'
+- [ ] /shops/[slug] metadata: '<Shop name> – Verified car seller in <City> | CarMart'
 - [ ] Root layout: default title template, description, `metadataBase` = NEXT_PUBLIC_SITE_URL, the SiteFooter
 - [ ] sitemap.xml lists /, /cars, the legal pages, every live listing and approved shop (lastModified = updated_at); robots.txt allows / and disallows /sell, /account, /admin, /api
 - [ ] SiteFooter links: Terms, Privacy, Prohibited Listings, Buyer Safety, Contact; shows © CarMart
