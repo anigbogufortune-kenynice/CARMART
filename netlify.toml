@@ -7,6 +7,10 @@
 [build.environment]
   NODE_VERSION = "22"
   NEXT_TELEMETRY_DISABLED = "1"
+  # Netlify's secret scanner flags any env var value it finds in the repo or build output. These are
+  # public by design (NEXT_PUBLIC_* ships to the browser) or plain switches like "fake"/"log", so
+  # they are skipped. Real secrets (service role key, job secret, vendor API keys) are still scanned.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SITE_URL,NEXT_PUBLIC_SUPPORT_EMAIL,CAR_CHECK_PROVIDER,AI_CHECK_PROVIDER,EMAIL_PROVIDER,ANTHROPIC_CAR_CHECK_MODEL,LOG_LEVEL"
 
 # Photo checks run in netlify/functions/process-image-checks.mts (a background function, up to
 # 15 minutes). `sharp` is a native module: ship it as a real node_module instead of bundling it.
