@@ -1,0 +1,19 @@
+# Netlify hosting (ADR-014). Next.js is detected automatically (OpenNext adapter); this file only
+# pins the build and configures the photo-check background function.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Photo checks run in netlify/functions/process-image-checks.mts (a background function, up to
+# 15 minutes). `sharp` is a native module: ship it as a real node_module instead of bundling it.
+# The fixture manifest is only read when the fake providers are used (e.g. a staging site).
+[functions."process-image-checks"]
+  node_bundler = "esbuild"
+  external_node_modules = ["sharp"]
+  included_files = ["tests/fixtures/images/manifest.json"]
+  # Pro plan: run next to the Sydney database.
+  # region = "syd"
