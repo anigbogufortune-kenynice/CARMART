@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { nairaInput } from '@/lib/format'
 import {
-  AU_STATES, BODY_TYPES, BODY_TYPE_LABELS, FUELS, FUEL_LABELS, ListingDraftSchema, TRANSMISSIONS, TRANSMISSION_LABELS,
+  BODY_TYPES, BODY_TYPE_LABELS, CONDITIONS, CONDITION_LABELS, FUELS, FUEL_LABELS, ListingDraftSchema, NG_STATES, TRANSMISSIONS,
+  TRANSMISSION_LABELS, stateLabel,
 } from '@/types/domain'
 
 /** The editable fields of a listing, as the owner API returns them. */
@@ -16,6 +18,7 @@ export type ListingFormListing = {
   year: number | null
   odometer_km: number | null
   price_cents: number | null
+  condition: string | null
   body_type: string | null
   transmission: string | null
   fuel: string | null
@@ -25,8 +28,7 @@ export type ListingFormListing = {
   rego_expiry: string | null
   description: string
   state: string | null
-  suburb: string | null
-  postcode: string | null
+  city: string | null
 }
 
 type Props =
@@ -35,8 +37,8 @@ type Props =
 
 type Ref = { id: string; name: string }
 type Field =
-  | 'make' | 'model' | 'year' | 'odometer_km' | 'price' | 'body_type' | 'transmission' | 'fuel' | 'colour'
-  | 'vin' | 'rego' | 'rego_expiry' | 'description' | 'state' | 'suburb' | 'postcode'
+  | 'make' | 'model' | 'year' | 'odometer_km' | 'price' | 'condition' | 'body_type' | 'transmission' | 'fuel' | 'colour'
+  | 'vin' | 'rego' | 'rego_expiry' | 'description' | 'state' | 'city'
 
 const OTHER = '__other'
 const DESCRIPTION_MAX = 5000
@@ -46,7 +48,6 @@ const CODE_FIELD: Record<string, [Field, string]> = {
   INVALID_VIN: ['vin', 'Enter a valid 17-character VIN'],
   MAKE_REQUIRED: ['make', 'Choose a make, or pick Other… and type it'],
   MODEL_REQUIRED: ['model', 'Choose a model, or pick Other… and type it'],
-  POSTCODE_STATE_MISMATCH: ['postcode', 'That postcode is not in the selected state'],
 }
 
 /** Plain-language message per field for generic validation failures. */
@@ -54,12 +55,13 @@ const FIELD_HINT: Record<Field, string> = {
   make: 'Choose a make', model: 'Choose a model',
   year: `Enter a year from 1900 to ${new Date().getFullYear() + 1}`,
   odometer_km: 'Enter kilometres from 0 to 2,000,000',
-  price: 'Enter a price from $1 to $10,000,000',
+  price: 'Enter a price of at least ₦1,000',
+  condition: 'Choose the condition',
   body_type: 'Choose a body type', transmission: 'Choose a transmission', fuel: 'Choose a fuel type',
   colour: 'Enter a colour (2–30 characters)', vin: 'Enter a valid 17-character VIN',
-  rego: 'Rego is up to 9 letters and numbers', rego_expiry: 'Enter a valid date',
+  rego: 'Plate number is up to 10 letters and numbers', rego_expiry: 'Enter a valid date',
   description: `Keep the description under ${DESCRIPTION_MAX} characters`,
-  state: 'Choose a state', suburb: 'Enter a suburb', postcode: 'Enter a 4-digit postcode',
+  state: 'Choose a state', city: 'Enter a city or area',
 }
 
 /** API field name → form field. */
@@ -67,7 +69,7 @@ const API_FIELD: Record<string, Field> = {
   make_id: 'make', make_other: 'make', model_id: 'model', model_other: 'model', price_cents: 'price',
   year: 'year', odometer_km: 'odometer_km', body_type: 'body_type', transmission: 'transmission', fuel: 'fuel',
   colour: 'colour', vin: 'vin', rego: 'rego', rego_expiry: 'rego_expiry', description: 'description',
-  state: 'state', suburb: 'suburb', postcode: 'postcode',
+  state: 'state', city: 'city', condition: 'condition',
 }
 
 const SERVER_MESSAGES: Record<string, string> = {
@@ -79,12 +81,11 @@ const SERVER_MESSAGES: Record<string, string> = {
   EMAIL_NOT_VERIFIED: 'Verify your email before listing a car',
 }
 
-const dollars = (cents: number | null) =>
-  cents == null ? '' : (cents / 100).toLocaleString('en-AU', { maximumFractionDigits: 2 })
+const naira = (kobo: number | null) => nairaInput(kobo)
 
-/** '45,990' / '$45 990.50' → cents, or NaN. */
-function toCents(input: string): number {
-  const cleaned = input.replace(/[$,\s]/g, '')
+/** '4,500,000' / '₦4 500 000.50' → kobo, or NaN. */
+function toKobo(input: string): number {
+  const cleaned = input.replace(/[₦,\s]/g, '')
   if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return NaN
   return Math.round(Number(cleaned) * 100)
 }
@@ -97,7 +98,7 @@ export function ListingForm({ mode, listing, onSaved }: Props) {
   const [makeOther, setMakeOther] = useState(listing?.make_other ?? '')
   const [modelOther, setModelOther] = useState(listing?.model_other ?? '')
   const [vin, setVin] = useState(listing?.vin ?? '')
-  const [price, setPrice] = useState(dollars(listing?.price_cents ?? null))
+  const [price, setPrice] = useState(naira(listing?.price_cents ?? null))
   const [description, setDescription] = useState(listing?.description ?? '')
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
   const [formError, setFormError] = useState<string | null>(null)
@@ -139,11 +140,11 @@ export function ListingForm({ mode, listing, onSaved }: Props) {
       else payload[name] = Number(v)
     }
     if (price.trim()) {
-      const cents = toCents(price)
-      if (Number.isNaN(cents)) bad.price = FIELD_HINT.price
-      else payload.price_cents = cents
+      const kobo = toKobo(price)
+      if (Number.isNaN(kobo)) bad.price = FIELD_HINT.price
+      else payload.price_cents = kobo
     }
-    for (const name of ['body_type', 'transmission', 'fuel', 'state', 'colour', 'rego', 'rego_expiry', 'suburb', 'postcode'] as const) {
+    for (const name of ['condition', 'body_type', 'transmission', 'fuel', 'state', 'colour', 'rego', 'rego_expiry', 'city'] as const) {
       const v = text(name)
       if (v) payload[name] = v
     }
@@ -258,14 +259,20 @@ export function ListingForm({ mode, listing, onSaved }: Props) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {field('year', 'Year', <input id="year" name="year" inputMode="numeric" maxLength={4} defaultValue={listing?.year ?? ''} className={input} {...invalid('year')} />, 'year')}
           {field('odometer_km', 'Odometer (km)', <input id="odometer_km" name="odometer_km" inputMode="numeric" defaultValue={listing?.odometer_km ?? ''} className={input} {...invalid('odometer_km')} />, 'odometer_km')}
-          {field('price', 'Price (AUD)', (
+          {field('price', 'Price (₦)', (
             <div className="relative">
-              <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 mt-0.5 -translate-y-1/2 text-gray-500">$</span>
+              <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 mt-0.5 -translate-y-1/2 text-gray-500">₦</span>
               <input id="price" inputMode="decimal" value={price} className={`${input} pl-7`} {...invalid('price')}
                 onChange={(e) => setPrice(e.target.value)} />
             </div>
           ), 'price')}
         </div>
+        {field('condition', 'Condition', (
+          <select id="condition" name="condition" defaultValue={listing?.condition ?? ''} className={input} {...invalid('condition')}>
+            <option value="">Choose…</option>
+            {CONDITIONS.map((c) => <option key={c} value={c}>{CONDITION_LABELS[c]}</option>)}
+          </select>
+        ), 'condition')}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {field('body_type', 'Body type', (
             <select id="body_type" name="body_type" defaultValue={listing?.body_type ?? ''} className={input} {...invalid('body_type')}>
@@ -295,10 +302,10 @@ export function ListingForm({ mode, listing, onSaved }: Props) {
           <input id="vin" value={vin} maxLength={17} autoCapitalize="characters" spellCheck={false}
             className={`${input} font-mono tracking-wider`} {...invalid('vin')}
             onChange={(e) => setVin(e.target.value.toUpperCase())} />
-        ), 'vin', <p className="mt-1 text-sm text-gray-600">17 characters, found on the compliance plate or rego papers. Shown to buyers so they can run a PPSR check.</p>)}
+        ), 'vin', <p className="mt-1 text-sm text-gray-600">17 characters, found on the dashboard, door frame or vehicle papers. Shown to buyers so they can check the car’s history (for example a Carfax report for imported cars).</p>)}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {field('rego', 'Rego (optional)', <input id="rego" name="rego" maxLength={9} defaultValue={listing?.rego ?? ''} className={`${input} uppercase`} {...invalid('rego')} />, 'rego')}
-          {field('rego_expiry', 'Rego expiry (optional)', <input id="rego_expiry" name="rego_expiry" type="date" defaultValue={listing?.rego_expiry ?? ''} className={input} {...invalid('rego_expiry')} />, 'rego_expiry')}
+          {field('rego', 'Plate number (optional)', <input id="rego" name="rego" maxLength={12} placeholder="e.g. LND-123-AA" defaultValue={listing?.rego ?? ''} className={`${input} uppercase`} {...invalid('rego')} />, 'rego')}
+          {field('rego_expiry', 'Vehicle licence expiry (optional)', <input id="rego_expiry" name="rego_expiry" type="date" defaultValue={listing?.rego_expiry ?? ''} className={input} {...invalid('rego_expiry')} />, 'rego_expiry')}
         </div>
       </fieldset>
 
@@ -309,15 +316,14 @@ export function ListingForm({ mode, listing, onSaved }: Props) {
             aria-describedby={['description-count', describe('description')].filter(Boolean).join(' ')}
             onChange={(e) => setDescription(e.target.value)} />
         ), 'description', <p id="description-count" className="mt-1 text-right text-sm text-gray-600">{description.length} / {DESCRIPTION_MAX}</p>)}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {field('suburb', 'Suburb', <input id="suburb" name="suburb" maxLength={60} defaultValue={listing?.suburb ?? ''} className={input} {...invalid('suburb')} />, 'suburb')}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {field('city', 'City or area', <input id="city" name="city" maxLength={60} placeholder="e.g. Ikeja" defaultValue={listing?.city ?? ''} className={input} {...invalid('city')} />, 'city')}
           {field('state', 'State', (
             <select id="state" name="state" defaultValue={listing?.state ?? ''} className={input} {...invalid('state')}>
               <option value="">Choose…</option>
-              {AU_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+              {NG_STATES.map((s) => <option key={s} value={s}>{stateLabel(s)}</option>)}
             </select>
           ), 'state')}
-          {field('postcode', 'Postcode', <input id="postcode" name="postcode" inputMode="numeric" maxLength={4} defaultValue={listing?.postcode ?? ''} className={input} {...invalid('postcode')} />, 'postcode')}
         </div>
       </fieldset>
 

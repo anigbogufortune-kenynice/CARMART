@@ -1,5 +1,7 @@
 # Issue 022: Listing detail API (public vs owner) and listing status emails
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 **Epic:** E02-car-listings-with-verified-photos
 **Feature:** E02-car-listings-with-verified-photos/F03-submit-and-go-live
 **Type:** AFK

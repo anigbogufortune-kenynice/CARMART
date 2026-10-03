@@ -9,7 +9,7 @@ import { err, ok, type AppError, type Result } from '@/types/result'
 import type { CarCheckProvider, CarCheckResult } from './types'
 
 export const CAR_CHECK_SYSTEM_PROMPT = [
-  'You check photos uploaded to an Australian marketplace that sells passenger cars only.',
+  'You check photos uploaded to a Nigerian marketplace that sells passenger cars only.',
   'Judge only what is visible in the photo. Do not guess from context you cannot see.',
   'A real car counts in any view: exterior, interior, engine bay, dashboard, wheels or another close-up of the car.',
   'These do NOT count as a car: toys, scale models, drawings, 3D renders, video game cars, trucks, buses, motorbikes, caravans, boats, and car parts on their own (not fitted to a car).',

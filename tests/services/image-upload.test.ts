@@ -14,7 +14,7 @@ afterEach(async () => {
 
 async function ownerWithDraft(email = 'a@x.au') {
   const db = await asUser(await createUser({ email }))
-  const shop = await createShop(db, { name: 'Coastal Cars', slug: `shop-${email.split('@')[0]}`, suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+  const shop = await createShop(db, { name: 'Coastal Cars', slug: `shop-${email.split('@')[0]}`, city: 'Ikeja', state: 'Lagos' })
   if (!shop.ok) throw new Error(shop.error.message)
   const draft = await createDraft(db, {})
   if (!draft.ok) throw new Error(draft.error.message)
@@ -130,8 +130,8 @@ describe('getPhotoStatus / deletePhoto', () => {
     }))
     const inserted = await adminDb().from('listing_images').insert(rows).select('id')
     await adminDb().from('listings').update({
-      status: 'live', make_other: 'Holden', model_other: 'Kingswood', year: 1975, odometer_km: 1, price_cents: 100, body_type: 'sedan',
-      transmission: 'manual', fuel: 'petrol', colour: 'Red', vin: '6H8KZ9A1234567890', state: 'NSW', suburb: 'Parramatta', postcode: '2150',
+      status: 'live', make_other: 'Holden', model_other: 'Kingswood', year: 1975, odometer_km: 1, price_cents: 350_000_000, condition: 'nigerian_used', body_type: 'sedan',
+      transmission: 'manual', fuel: 'petrol', colour: 'Red', vin: '6H8KZ9A1234567890', state: 'Lagos', city: 'Ikeja',
     }).eq('id', listingId)
     expect(await deletePhoto(db, listingId, inserted.data![0].id)).toMatchObject({ ok: false, error: { code: 'PHOTO_COUNT' } })
   })

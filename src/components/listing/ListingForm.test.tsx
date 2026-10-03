@@ -58,13 +58,13 @@ describe('ListingForm fields', () => {
     const user = userEvent.setup()
     render(<ListingForm mode="create" onSaved={onSaved} />)
     await screen.findByRole('option', { name: 'Toyota' })
-    await user.type(screen.getByLabelText('Price (AUD)'), '45,990')
+    await user.type(screen.getByLabelText('Price (₦)'), '18,500,000')
     const vin = screen.getByLabelText('VIN')
     await user.type(vin, 'jtfst22p900123456')
     expect(vin).toHaveValue('JTFST22P900123456')
     await user.click(screen.getByRole('button', { name: 'Save draft' }))
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith({ id: 'l1', version: 1 }))
-    expect(lastBody()).toMatchObject({ price_cents: 4_599_000, vin: 'JTFST22P900123456' })
+    expect(lastBody()).toMatchObject({ price_cents: 1_850_000_000, vin: 'JTFST22P900123456' })
     expect(fetchMock).toHaveBeenCalledWith('/api/listings', expect.objectContaining({ method: 'POST' }))
   })
 
@@ -100,7 +100,7 @@ describe('ListingForm fields', () => {
     }
   })
 
-  it('edit mode PATCHes with the version and pre-fills the price in dollars', async () => {
+  it('edit mode PATCHes with the version and pre-fills the price in naira', async () => {
     saveResponse = () => json({ data: { id: 'l1', version: 3 } })
     const onSaved = vi.fn()
     const user = userEvent.setup()
@@ -108,17 +108,17 @@ describe('ListingForm fields', () => {
       <ListingForm
         mode="edit"
         listing={{ id: 'l1', version: 3, make_id: TOYOTA, model_id: HILUX, make_other: null, model_other: null, year: 2019,
-          odometer_km: 84000, price_cents: 4_599_000, body_type: 'ute', transmission: 'automatic', fuel: 'diesel', colour: 'White',
-          vin: 'JTFST22P900123456', rego: null, rego_expiry: null, description: '', state: 'QLD', suburb: 'Toowoomba', postcode: '4350' }}
+          odometer_km: 84000, price_cents: 1_850_000_000, condition: 'foreign_used', body_type: 'pickup', transmission: 'automatic', fuel: 'diesel', colour: 'White',
+          vin: 'JTFST22P900123456', rego: null, rego_expiry: null, description: '', state: 'FCT', city: 'Wuse' }}
         onSaved={onSaved}
       />,
     )
-    expect(screen.getByLabelText('Price (AUD)')).toHaveValue('45,990')
+    expect(screen.getByLabelText('Price (₦)')).toHaveValue('18,500,000')
     await screen.findByRole('option', { name: 'HiLux' })
     expect(screen.getByLabelText('Model')).toHaveValue(HILUX)
     await user.click(screen.getByRole('button', { name: 'Save draft' }))
     await waitFor(() => expect(onSaved).toHaveBeenCalled())
     expect(fetchMock).toHaveBeenCalledWith('/api/listings/l1', expect.objectContaining({ method: 'PATCH' }))
-    expect(lastBody()).toMatchObject({ version: 3, year: 2019, price_cents: 4_599_000 })
+    expect(lastBody()).toMatchObject({ version: 3, year: 2019, price_cents: 1_850_000_000 })
   })
 })

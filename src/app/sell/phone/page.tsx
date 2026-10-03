@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import { useEffect, useState, type FormEvent } from 'react'
-import { normaliseAuMobile } from '@/types/domain'
+import { normaliseNgMobile } from '@/types/domain'
 
 const MESSAGES: Record<string, string> = {
-  INVALID_AU_MOBILE: 'Enter an Australian mobile number (04…)',
+  INVALID_NG_MOBILE: 'Enter a Nigerian mobile number (e.g. 0803 123 4567)',
   PHONE_IN_USE: 'That number is already verified on another account',
   RATE_LIMITED: 'Too many codes requested — try again later',
   INVALID_CODE: 'That code isn’t right',
@@ -45,8 +45,8 @@ export default function PhonePage() {
 
   async function onNumber(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const normalised = normaliseAuMobile(String(new FormData(event.currentTarget).get('mobile') ?? ''))
-    if (!normalised) return setError(MESSAGES.INVALID_AU_MOBILE)
+    const normalised = normaliseNgMobile(String(new FormData(event.currentTarget).get('mobile') ?? ''))
+    if (!normalised) return setError(MESSAGES.INVALID_NG_MOBILE)
     await send(normalised)
   }
 
@@ -78,7 +78,7 @@ export default function PhonePage() {
         <form onSubmit={onNumber} noValidate className="mt-6 space-y-4">
           <div>
             <label htmlFor="mobile" className="block text-sm font-medium">Mobile number</label>
-            <input id="mobile" name="mobile" type="tel" inputMode="tel" autoComplete="tel" placeholder="0412 345 678" className={input} />
+            <input id="mobile" name="mobile" type="tel" inputMode="tel" autoComplete="tel" placeholder="0803 123 4567" className={input} />
           </div>
           <button type="submit" className="rounded bg-gray-900 px-4 py-2 text-white">Send code</button>
         </form>

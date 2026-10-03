@@ -7,14 +7,14 @@ afterEach(async () => {
   await resetDb()
 })
 
-const input = { name: 'Coastal Cars', slug: 'coastal-cars', suburb: 'Parramatta', state: 'NSW' as const, postcode: '2150' }
+const input = { name: 'Coastal Cars', slug: 'coastal-cars', city: 'Ikeja', state: 'Lagos' as const }
 
 async function ownerWithShop(verifyPhone: boolean) {
   const db = await asUser(await createUser({ email: `o${Math.random()}@x.au` }))
   const shop = await createShop(db, input)
   if (verifyPhone) {
-    await sendPhoneCode(db, '+61400000000')
-    await verifyPhoneCode(db, '+61400000000', '123456')
+    await sendPhoneCode(db, '+2348000000000')
+    await verifyPhoneCode(db, '+2348000000000', '123456')
   }
   return { db, id: shop.ok ? shop.value.id : '' }
 }

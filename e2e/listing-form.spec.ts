@@ -9,7 +9,7 @@ test('seller creates a draft through the listing form', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.waitForURL((url) => url.pathname.startsWith('/sell'), { waitUntil: 'commit' })
   const shop = await page.request.post('/api/shops', {
-    data: { name: 'Form Motors', slug: `form-motors-${Date.now()}`, suburb: 'Toowoomba', state: 'QLD', postcode: '4350' },
+    data: { name: 'Form Motors', slug: `form-motors-${Date.now()}`, city: 'Wuse', state: 'FCT' },
   })
   expect(shop.status()).toBe(201)
 
@@ -24,7 +24,7 @@ test('seller creates a draft through the listing form', async ({ page }) => {
   await expect(page.getByLabel('Model')).toBeEnabled()
   await page.getByLabel('Model').selectOption({ label: 'HiLux' })
   await page.getByLabel('Year').fill('2019')
-  await page.getByLabel('Price (AUD)').fill('45,990')
+  await page.getByLabel('Price (₦)').fill('18,500,000')
   await page.getByLabel('VIN').fill('jtfst22p9001234o6')
   await expect(page.getByLabel('VIN')).toHaveValue('JTFST22P9001234O6')
   await page.getByRole('button', { name: 'Save draft' }).click()
@@ -34,10 +34,10 @@ test('seller creates a draft through the listing form', async ({ page }) => {
   await page.getByRole('button', { name: 'Save draft' }).click()
   await page.waitForURL(/\/sell\/listings\/[0-9a-f-]{36}$/, { waitUntil: 'commit' })
   await expect(page.getByRole('heading', { name: '2019 Toyota HiLux' })).toBeVisible()
-  await expect(page.getByLabel('Price (AUD)')).toHaveValue('45,990')
+  await expect(page.getByLabel('Price (₦)')).toHaveValue('18,500,000')
 
   await page.goto('/sell/listings')
   const row = page.getByRole('row', { name: /2019 Toyota HiLux/ })
   await expect(row).toContainText('Draft')
-  await expect(row).toContainText('$45,990')
+  await expect(row).toContainText('₦18,500,000')
 })

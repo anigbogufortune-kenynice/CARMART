@@ -24,7 +24,7 @@ const REQUIRED: [string, (l: OwnListing) => unknown][] = [
   ['make', (l) => l.make_id ?? l.make_other], ['model', (l) => l.model_id ?? l.model_other], ['year', (l) => l.year],
   ['odometer', (l) => l.odometer_km], ['price', (l) => l.price_cents], ['body type', (l) => l.body_type],
   ['transmission', (l) => l.transmission], ['fuel', (l) => l.fuel], ['colour', (l) => l.colour], ['VIN', (l) => l.vin],
-  ['suburb', (l) => l.suburb], ['state', (l) => l.state], ['postcode', (l) => l.postcode],
+  ['city or area', (l) => l.city], ['state', (l) => l.state], ['condition', (l) => l.condition],
 ]
 
 export default async function EditListingPage({ params }: { params: { id: string } }) {

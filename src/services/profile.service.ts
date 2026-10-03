@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
-import { AuMobileSchema } from '@/types/domain'
+import { NgMobileSchema } from '@/types/domain'
 import { err, ok, type AppError, type Result } from '@/types/result'
 
 export type Me = {
@@ -47,10 +47,10 @@ export async function updateDisplayName(db: SupabaseClient, displayName: string)
   return ok({ display_name: data.display_name })
 }
 
-/** Send an SMS code to an Australian mobile (sellers only; not a sign-in method). */
+/** Send an SMS code to a Nigerian mobile (sellers only; not a sign-in method). */
 export async function sendPhoneCode(db: SupabaseClient, phone: string): Promise<Result<{ sent: true }, AppError>> {
-  if (!AuMobileSchema.safeParse(phone).success) {
-    return err({ code: 'INVALID_AU_MOBILE', message: 'Enter an Australian mobile number (04…)' })
+  if (!NgMobileSchema.safeParse(phone).success) {
+    return err({ code: 'INVALID_NG_MOBILE', message: 'Enter a Nigerian mobile number (e.g. 0803 123 4567)' })
   }
   const inUse = await db.rpc('phone_in_use', { p_phone: phone })
   if (inUse.error) return err({ code: 'INTERNAL_ERROR', message: inUse.error.message })
@@ -75,8 +75,8 @@ export async function sendPhoneCode(db: SupabaseClient, phone: string): Promise<
 
 /** Verify the 6-digit code; a DB trigger then copies the confirmed phone into profiles. */
 export async function verifyPhoneCode(db: SupabaseClient, phone: string, code: string): Promise<Result<{ phone_verified: true }, AppError>> {
-  if (!AuMobileSchema.safeParse(phone).success) {
-    return err({ code: 'INVALID_AU_MOBILE', message: 'Enter an Australian mobile number (04…)' })
+  if (!NgMobileSchema.safeParse(phone).success) {
+    return err({ code: 'INVALID_NG_MOBILE', message: 'Enter a Nigerian mobile number (e.g. 0803 123 4567)' })
   }
   if (!/^\d{6}$/.test(code)) return err({ code: 'INVALID_CODE', message: 'Enter the 6-digit code' })
   const { error } = await db.auth.verifyOtp({ phone, token: code, type: 'phone_change' })

@@ -18,7 +18,7 @@ afterEach(async () => {
 
 async function uploadedPhoto() {
   const db = await step('user', asUser(await step('createUser', createUser({ email: 'a@x.au' }))))
-  const shop = await step('shop', createShop(db, { name: 'Coastal Cars', slug: 'coastal-cars', suburb: 'Parramatta', state: 'NSW', postcode: '2150' }))
+  const shop = await step('shop', createShop(db, { name: 'Coastal Cars', slug: 'coastal-cars', city: 'Ikeja', state: 'Lagos' }))
   if (!shop.ok) throw new Error(shop.error.message)
   const draft = await step('draft', createDraft(db, {}))
   if (!draft.ok) throw new Error(draft.error.message)

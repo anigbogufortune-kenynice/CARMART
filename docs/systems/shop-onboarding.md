@@ -1,10 +1,12 @@
 # System Spec: Shop Onboarding
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 > Source: `issues/prd-carmart.md` (Q2, Q9, Q11, Q14; AC-04 to AC-10, AC-52)
 > Status: draft
 
 ## Overview
-Turns an ordinary user into a verified, publicly visible seller. Anyone can create one shop and draft listings immediately. The shop, and therefore every listing, becomes public only after the owner verifies an Australian mobile and an admin approves the shop. Admins can later suspend and unsuspend shops.
+Turns an ordinary user into a verified, publicly visible seller. Anyone can create one shop and draft listings immediately. The shop, and therefore every listing, becomes public only after the owner verifies an Nigerian mobile and an admin approves the shop. Admins can later suspend and unsuspend shops.
 
 **Actors:**
 | Actor | Role |
@@ -42,7 +44,7 @@ stateDiagram-v2
 | From | Event | Guard (must be true) | Action | To |
 |---|---|---|---|---|
 | — | `create_shop` | caller verified and active; caller has no shop; slug unique; postcode matches state | insert with `status = draft` | `draft` |
-| `draft` | `submit` | owner; `profiles.phone_verified_at IS NOT NULL`; name, slug, suburb, state, postcode valid | set `submitted_at`; version++ | `pending_approval` |
+| `draft` | `submit` | owner; `profiles.phone_verified_at IS NOT NULL`; name, slug, city, state, postcode valid | set `submitted_at`; version++ | `pending_approval` |
 | `rejected` | `submit` | same as above | clear `status_reason`; set `submitted_at`; version++ | `pending_approval` |
 | `pending_approval` | `approve` | `is_admin()` | set `approved_at`; audit `shop.approve`; enqueue `shop_approved` | `approved` |
 | `pending_approval` | `reject` | `is_admin()`; reason 5–500 chars | set `status_reason`; audit `shop.reject`; enqueue `shop_rejected` | `rejected` |

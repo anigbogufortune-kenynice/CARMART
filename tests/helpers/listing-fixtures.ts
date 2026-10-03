@@ -6,7 +6,7 @@ import { adminDb, asUser, createUser } from './supabase-test'
 /** A shop owner (approved unless told otherwise) with a signed-in client. */
 export async function ownerWithShop(email: string, opts: { approved?: boolean; cap?: number } = {}) {
   const db = await asUser(await createUser({ email }))
-  const shop = await createShop(db, { name: 'Coastal Cars', slug: `shop-${email.split('@')[0].replace(/[^a-z0-9]/g, '')}`, suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+  const shop = await createShop(db, { name: 'Coastal Cars', slug: `shop-${email.split('@')[0].replace(/[^a-z0-9]/g, '')}`, city: 'Ikeja', state: 'Lagos' })
   if (!shop.ok) throw new Error(shop.error.message)
   const patch: Record<string, unknown> = {}
   if (opts.approved !== false) patch.status = 'approved'
@@ -43,8 +43,8 @@ export async function completeDraft(
     ? { make_id: null, make_other: 'Holden-ish', model_id: null, model_other: 'Special' }
     : { ...(await hiluxIds()), make_other: null, model_other: null }
   const draft = await createDraft(db, {
-    ...identity, year: 2019, odometer_km: 84_000, price_cents: 4_599_000, body_type: 'ute', transmission: 'automatic',
-    fuel: 'diesel', colour: 'White', vin: opts.vin ?? uniqueVin(), state: 'NSW', suburb: 'Parramatta', postcode: '2150',
+    ...identity, year: 2019, odometer_km: 84_000, price_cents: 1_850_000_000, condition: 'foreign_used', body_type: 'pickup', transmission: 'automatic',
+    fuel: 'diesel', colour: 'White', vin: opts.vin ?? uniqueVin(), state: 'Lagos', city: 'Ikeja',
   })
   if (!draft.ok) throw new Error(draft.error.message)
   const count = opts.photos ?? 4

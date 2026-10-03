@@ -9,7 +9,7 @@ test('seller uploads photos and sees each check result', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.waitForURL((url) => url.pathname.startsWith('/sell'), { waitUntil: 'commit' })
   expect((await page.request.post('/api/shops', {
-    data: { name: 'Uploader Motors', slug: `uploader-${Date.now()}`, suburb: 'Parramatta', state: 'NSW', postcode: '2150' },
+    data: { name: 'Uploader Motors', slug: `uploader-${Date.now()}`, city: 'Ikeja', state: 'Lagos' },
   })).status()).toBe(201)
   const listingId = (await (await page.request.post('/api/listings', { data: {} })).json()).data.id
 

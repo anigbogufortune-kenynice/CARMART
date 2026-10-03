@@ -25,7 +25,7 @@ describe('listing.service listMakes / listModels', () => {
     const res = await listMakes(anonDb())
     expect(res.ok).toBe(true)
     if (!res.ok) return
-    expect(['Abarth', 'Alfa Romeo']).toContain(res.value[0].name)
+    expect(res.value[0].name).toBe('Acura')
     const names = res.value.map((m) => m.name)
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
     expect(Object.keys(res.value[0]).sort()).toEqual(['id', 'name'])

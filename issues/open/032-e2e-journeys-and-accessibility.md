@@ -1,5 +1,7 @@
 # Issue 032: End-to-end journeys and accessibility checks
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 **Epic:** E03-car-search-and-discovery
 **Feature:** E03-car-search-and-discovery/F04-seo-a11y-legal
 **Type:** AFK

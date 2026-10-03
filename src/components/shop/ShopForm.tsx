@@ -1,27 +1,25 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { AU_STATES, ShopCreateSchema, ShopUpdateSchema } from '@/types/domain'
+import { NG_STATES, ShopCreateSchema, ShopUpdateSchema, stateLabel } from '@/types/domain'
 
 export type ShopFormShop = {
   id: string
   name: string
   slug: string
   description: string | null
-  suburb: string
+  city: string
   state: string
-  postcode: string
   status: string
   show_phone: boolean
 }
 
-type Field = 'name' | 'slug' | 'suburb' | 'state' | 'postcode' | 'description'
+type Field = 'name' | 'slug' | 'city' | 'state' | 'description'
 
 const SERVER_MESSAGES: Record<string, string> = {
   SLUG_TAKEN: 'That web address is taken — try another',
   SLUG_LOCKED: 'The web address can’t be changed after you submit your shop.',
   SHOP_ALREADY_EXISTS: 'You already have a shop',
-  POSTCODE_STATE_MISMATCH: 'That postcode is not in the selected state',
   UNAUTHENTICATED: 'Sign in to create a shop',
   EMAIL_NOT_VERIFIED: 'Verify your email before creating a shop',
   FORBIDDEN: 'This shop can’t be changed right now',
@@ -51,9 +49,8 @@ export function ShopForm({ mode, shop, onSaved }: Props) {
     const description = String(form.get('description') ?? '').trim()
     const values = {
       name, slug,
-      suburb: String(form.get('suburb') ?? ''),
+      city: String(form.get('city') ?? ''),
       state: String(form.get('state') ?? ''),
-      postcode: String(form.get('postcode') ?? ''),
     }
 
     let payload: Record<string, unknown>
@@ -121,24 +118,19 @@ export function ShopForm({ mode, shop, onSaved }: Props) {
         <label htmlFor="description" className="block text-sm font-medium">About your shop (optional)</label>
         <textarea id="description" name="description" maxLength={1000} rows={3} defaultValue={shop?.description ?? ''} className={input} />
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="suburb" className="block text-sm font-medium">Suburb</label>
-          <input id="suburb" name="suburb" defaultValue={shop?.suburb ?? ''} className={input} aria-invalid={!!errors.suburb} />
-          {error('suburb')}
+          <label htmlFor="city" className="block text-sm font-medium">City or area</label>
+          <input id="city" name="city" placeholder="e.g. Ikeja" defaultValue={shop?.city ?? ''} className={input} aria-invalid={!!errors.city} />
+          {error('city')}
         </div>
         <div>
           <label htmlFor="state" className="block text-sm font-medium">State</label>
           <select id="state" name="state" defaultValue={shop?.state ?? ''} className={input} aria-invalid={!!errors.state}>
             <option value="" disabled>Choose…</option>
-            {AU_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            {NG_STATES.map((s) => <option key={s} value={s}>{stateLabel(s)}</option>)}
           </select>
           {error('state')}
-        </div>
-        <div>
-          <label htmlFor="postcode" className="block text-sm font-medium">Postcode</label>
-          <input id="postcode" name="postcode" inputMode="numeric" maxLength={4} defaultValue={shop?.postcode ?? ''} className={input} aria-invalid={!!errors.postcode} />
-          {error('postcode')}
         </div>
       </div>
       {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}

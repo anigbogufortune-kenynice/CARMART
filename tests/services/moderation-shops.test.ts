@@ -10,7 +10,7 @@ async function pendingShop() {
   const owner = await createUser({ email: `owner${Math.random()}@x.au` })
   const { data } = await adminDb()
     .from('shops')
-    .insert({ owner_id: owner.id, name: 'Coastal Cars', slug: `coastal-${Date.now()}${Math.floor(Math.random() * 1e6)}`, suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+    .insert({ owner_id: owner.id, name: 'Coastal Cars', slug: `coastal-${Date.now()}${Math.floor(Math.random() * 1e6)}`, city: 'Ikeja', state: 'Lagos' })
     .select('id,slug')
     .single()
   await adminDb().from('shops').update({ status: 'pending_approval', submitted_at: new Date().toISOString() }).eq('id', data!.id)

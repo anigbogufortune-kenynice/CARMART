@@ -19,5 +19,4 @@
   node_bundler = "esbuild"
   external_node_modules = ["sharp"]
   included_files = ["tests/fixtures/images/manifest.json"]
-  # Pro plan: run next to the Sydney database.
-  # region = "syd"
+  # Pro plan: pick the European region nearest the London database (Cloud compute → Functions → Region).

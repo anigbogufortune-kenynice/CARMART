@@ -14,7 +14,7 @@ export type ShopQueueItem = {
   id: string
   name: string
   slug: string
-  suburb: string
+  city: string
   state: string
   submitted_at: string
   owner_name: string
@@ -33,7 +33,7 @@ async function shopsQueue(db: SupabaseClient, page: number): Promise<Result<Page
   const from = (page - 1) * PAGE_SIZE
   const { data, error, count } = await db
     .from('shops')
-    .select('id,name,slug,suburb,state,submitted_at,owner:profiles!shops_owner_id_fkey(display_name,phone_verified_at)', { count: 'exact' })
+    .select('id,name,slug,city,state,submitted_at,owner:profiles!shops_owner_id_fkey(display_name,phone_verified_at)', { count: 'exact' })
     .eq('status', 'pending_approval')
     .order('submitted_at', { ascending: true })
     .range(from, from + PAGE_SIZE - 1)

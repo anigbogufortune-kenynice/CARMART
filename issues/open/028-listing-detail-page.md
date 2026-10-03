@@ -1,5 +1,7 @@
 # Issue 028: Public listing detail page (gallery, specs, VIN/PPSR, shop card, SOLD)
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 **Epic:** E03-car-search-and-discovery
 **Feature:** E03-car-search-and-discovery/F02-listing-detail-page
 **Type:** AFK
@@ -28,7 +30,7 @@ As a visitor, I want to see a car's photos and full details, so that I can decid
 - [ ] Server-rendered page via search.service getListingForViewer; not visible → notFound()
 - [ ] Gallery: the lg image with thumbnails (md/sm via `srcset`), keyboard navigable (←/→), alt text '<title> photo N of M'
 - [ ] Spec table: price, year, km, body type, transmission, fuel, colour, rego + expiry (if any), location; VIN shown in monospace with 'Check this VIN on PPSR ↗' linking to https://www.ppsr.gov.au/ (rel noopener, new tab)
-- [ ] A shop card with name, suburb/state, Verified badge, link to /shops/[slug]
+- [ ] A shop card with name, city/state, Verified badge, link to /shops/[slug]
 - [ ] Sold listings (within 7 days) show a 'SOLD' banner, and the contact actions are hidden
 - [ ] Placeholders (disabled) exist for Message seller / Save / Report until issues 029, 034 and 043 add them
 

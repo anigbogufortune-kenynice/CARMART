@@ -26,7 +26,7 @@ export default async function AdminShopsPage({ searchParams }: { searchParams: {
             <li key={s.id} className="rounded border border-gray-200 bg-white p-4">
               <p className="font-medium">{s.name}</p>
               <p className="text-sm text-gray-600">
-                {s.suburb} {s.state} · submitted {ago(s.submitted_at)} · owner {s.owner_name} ·{' '}
+                {s.city}, {s.state} · submitted {ago(s.submitted_at)} · owner {s.owner_name} ·{' '}
                 {s.phone_verified ? 'phone verified ✓' : 'phone NOT verified'}
               </p>
               <ShopDecisionButtons shopId={s.id} shopName={s.name} />

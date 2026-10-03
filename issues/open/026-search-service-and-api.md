@@ -1,5 +1,7 @@
 # Issue 026: Search service and public search API
 
+> **Nigeria (ADR-015):** no postcode (state + city only), prices in naira (kobo), +234 mobiles, Nigerian plate numbers instead of "rego", `pickup` instead of `ute`, a required car condition, no PPSR (VIN shown for buyers to check), Nigerian law for legal pages. Where this file says otherwise, ADR-015 wins.
+
 **Epic:** E03-car-search-and-discovery
 **Feature:** E03-car-search-and-discovery/F01-search-and-filter
 **Type:** AFK
@@ -25,7 +27,7 @@ As a visitor, I want to filter cars by what matters to me, so that I only see re
 - docs/systems/listing-lifecycle.md: INV-L3 (approved shops only), sold leaves search immediately
 
 ## Acceptance Criteria
-- [ ] Only live listings of approved shops; filters make_id, model_id, price_min/max (cents), year_min/max, km_max, body_type, transmission, fuel, state, suburb (case-insensitive), postcode combine with AND
+- [ ] Only live listings of approved shops; filters make_id, model_id, price_min/max (cents), year_min/max, km_max, body_type, transmission, fuel, state, city (case-insensitive), postcode combine with AND
 - [ ] `q` uses full-text search (search_vector, `websearch_to_tsquery('english', q)`)
 - [ ] Sorts: newest (live_at desc, default), price_asc, price_desc, km_asc, year_desc; ties broken by id
 - [ ] 24 per page with an accurate total; page beyond the end → empty data with the correct total

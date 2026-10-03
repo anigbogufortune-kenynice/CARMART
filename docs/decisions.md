@@ -45,7 +45,7 @@
 
 **Date:** 2026-09-28 · **Status:** accepted · **Source:** Q6
 
-**Decision:** AUD, km, `+61` mobiles, AU states and postcodes, the Australian Privacy Act, and Sydney-region hosting. `country` and `currency` columns on shops and listings instead of constants.
+**Decision:** NGN, km, `+61` mobiles, AU states and postcodes, the Australian Privacy Act, and Sydney-region hosting. `country` and `currency` columns on shops and listings instead of constants.
 **Consequences:** Adding a country later is configuration plus localisation, not a schema rewrite.
 
 ## ADR-006: Background jobs run in a Node.js job runner behind internal routes; the service role is confined there
@@ -113,9 +113,9 @@ The worst outcome wins: rejected > in_review > passed.
 
 ## ADR-012: Hosting in Australia
 
-**Date:** 2026-09-28 · **Status:** accepted · **Source:** Q19
+**Date:** 2026-09-28 · **Status:** superseded by ADR-015 (Supabase in London, eu-west-2) · **Source:** Q19
 
-**Decision:** Supabase production and staging in `ap-southeast-2` (Sydney). Netlify functions pinned to `syd` on the Pro plan (ADR-014; originally Vercel `syd1`).
+**Decision:** Supabase production and staging in `eu-west-2` (Sydney). Netlify functions pinned to `syd` on the Pro plan (ADR-014; originally Vercel `syd1`).
 **Consequences:** Low latency for Australian users, and data stays onshore.
 
 ## ADR-013: Hive backup provider deferred
@@ -134,3 +134,18 @@ The worst outcome wins: rejected > in_review > passed.
 **Decision:** The Next.js app (pages, `/api/*`, middleware) deploys to Netlify as-is. Photo checks run in the Netlify **background function** `netlify/functions/process-image-checks.mts` (up to 15 minutes; it drains the queue). Postgres finds it through the Vault setting `image_check_path` (`/.netlify/functions/process-image-checks`), set with `configure_internal_jobs(base_url, secret, image_check_path)`. Without that setting Postgres calls the Next.js route `/api/internal/process-image-checks`, which local stacks and CI keep using. Email dispatch and unpublishing stay as Next.js routes (no native modules, well under 60 s).
 **Consequences:** One extra entry point for the same pipeline code (`src/server/jobs/image-verification/background.ts`). Functions run in US East (Ohio) unless the site is on Netlify Pro with the region set to Sydney (`syd`), which matters because every request talks to the Sydney database. The first production deploy must be checked by uploading a photo and watching it reach `passed`.
 
+
+## ADR-015: CarMart serves Nigeria
+
+**Date:** 2026-10-03 · **Status:** accepted · **Source:** owner request (supersedes the Australian market assumptions in the PRD, specs and ADR-012)
+
+**Decision:** CarMart is a Nigerian marketplace. Where any spec, issue or older ADR says otherwise, this ADR wins:
+- **Locations:** the 36 states plus the FCT (enum `ng_state`; the FCT displays as "FCT (Abuja)"). `city` is renamed `city` ("City or area"). There is **no postcode** anywhere (Nigerian postal codes are rarely used); the postcode–state check and `POSTCODE_STATE_MISMATCH` are gone.
+- **Money:** naira. `currency` is `NGN`; `price_cents` holds **kobo**; listing prices run ₦1,000 – ₦10bn; display as `₦4,500,000`.
+- **Phones:** Nigerian mobiles only, E.164 `+234` then `70|71|80|81|90|91` and 8 digits (`INVALID_NG_MOBILE`). Local test OTP numbers are `2348000000000` and `2348000000001`.
+- **Vehicles:** a required **condition**: `brand_new`, `foreign_used` (Tokunbo), `nigerian_used`. Body type `ute` is `pickup`; `people_mover` displays as "Minivan / bus"; fuel adds `cng`. The plate number (`rego` column) is up to 10 letters/digits after removing spaces and hyphens (e.g. `LND-123-AA`); its expiry is the vehicle licence expiry. The make list adds Nigerian-market makes (Innoson, Acura, Infiniti, Changan, Geely, GAC, JAC, Jetour, Pontiac) and drops Australia-only ones (Holden, Ram, Abarth, Cupra, Polestar, Zeekr, Smart).
+- **History checks:** there is no PPSR. Listings show the VIN so buyers can check history themselves (for example a Carfax report for imported cars).
+- **Time:** dates display in `Africa/Lagos` (`src/lib/format.ts`); schedules described in Sydney time use Lagos time.
+- **Legal:** the trust pages follow Nigerian law (Nigeria Data Protection Act 2023, Federal Competition and Consumer Protection Act 2018) instead of the Australian Privacy Act and Consumer Law; no Acknowledgement of Country.
+- **Hosting:** Supabase in `eu-west-2` (London), the closest region to Nigeria.
+**Consequences:** migration `20260928002120_nigeria.sql` converts the schema; open issues are read through this ADR.

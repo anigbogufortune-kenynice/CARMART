@@ -10,7 +10,7 @@ async function pendingShop(email: string, slug: string, submittedAt: string) {
   const owner = await createUser({ email, displayName: `Owner ${slug}` })
   const { data } = await adminDb()
     .from('shops')
-    .insert({ owner_id: owner.id, name: `Shop ${slug}`, slug, suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+    .insert({ owner_id: owner.id, name: `Shop ${slug}`, slug, city: 'Ikeja', state: 'Lagos' })
     .select('id')
     .single()
   await adminDb().from('shops').update({ status: 'pending_approval', submitted_at: submittedAt }).eq('id', data!.id)
@@ -23,7 +23,7 @@ describe('moderation.service listQueue("shops")', () => {
     const t1 = await pendingShop('a@x.au', 'shop-a', '2026-09-28T01:00:00Z')
     const t2 = await pendingShop('b@x.au', 'shop-b', '2026-09-28T02:00:00Z')
     const draftOwner = await createUser({ email: 'd@x.au' })
-    await adminDb().from('shops').insert({ owner_id: draftOwner.id, name: 'Draft', slug: 'draft-shop', suburb: 'Parramatta', state: 'NSW', postcode: '2150' })
+    await adminDb().from('shops').insert({ owner_id: draftOwner.id, name: 'Draft', slug: 'draft-shop', city: 'Ikeja', state: 'Lagos' })
 
     const admin = await asUser(await createUser({ email: 'admin@x.au', role: 'admin' }))
     const res = await listQueue(admin, 'shops', 1)
