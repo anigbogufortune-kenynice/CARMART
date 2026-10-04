@@ -199,7 +199,7 @@ export const ListingInputSchema = z.object({
 ### GET /api/listings (search)
 **Auth:** public
 **Query** (`z.object({...}).strict()`, all optional):
-`q` (string ≤ 100), `make_id`, `model_id`, `price_min`, `price_max` (cents), `year_min`, `year_max`, `km_max`, `body_type`, `transmission`, `fuel`, `state`, `city`, `postcode`, `sort` ∈ `newest | price_asc | price_desc | km_asc | year_desc` (default `newest`), `page` ≥ 1 (default 1).
+`q` (string ≤ 100), `make_id`, `model_id`, `price_min`, `price_max` (kobo), `year_min`, `year_max`, `km_max`, `condition`, `body_type`, `transmission`, `fuel`, `state`, `city` (case-insensitive), `sort` ∈ `newest | price_asc | price_desc | km_asc | year_desc` (default `newest`), `page` ≥ 1 (default 1).
 **Behaviour:** only `live` listings of `approved` shops; filters combine with AND; 24 per page.
 **Success, 200:**
 ```json
