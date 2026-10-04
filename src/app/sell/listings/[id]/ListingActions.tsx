@@ -35,6 +35,36 @@ export function ListingActions({ listingId, version, status, blockers }: Props) 
     }
   }
 
+  async function renew() {
+    setBusy(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/listings/${listingId}/renew`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ version }),
+      })
+      const json = (await res.json()) as { error?: { message: string } }
+      if (!res.ok) setError(json.error?.message ?? 'Couldn’t renew. Try again.')
+      router.refresh()
+    } catch {
+      setError('Couldn’t renew. Check your connection and try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (status === 'expired') {
+    return (
+      <div className="mt-6 rounded border border-gray-200 p-4">
+        <button type="button" onClick={() => void renew()} disabled={busy}
+          className="rounded bg-gray-900 px-4 py-2 text-white disabled:opacity-50">
+          {busy ? 'Renewing…' : 'Renew listing'}
+        </button>
+        <p className="mt-2 text-sm text-gray-600">Your photos are checked again, then the car is live for another 60 days.</p>
+        {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+      </div>
+    )
+  }
+
   if (status === 'live') {
     return (
       <div className="mt-6 rounded border border-gray-200 p-4">

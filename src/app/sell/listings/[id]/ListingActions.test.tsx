@@ -34,3 +34,12 @@ describe('ListingActions: live listing', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 })
+
+describe('ListingActions: expired listing', () => {
+  it('Renew listing POSTs renew with the version', async () => {
+    render(<ListingActions listingId="l1" version={7} status="expired" blockers={[]} />)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Renew listing' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/listings/l1/renew', expect.objectContaining({ method: 'POST' })))
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body as string)).toEqual({ version: 7 })
+  })
+})

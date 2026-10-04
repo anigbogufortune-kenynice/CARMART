@@ -39,6 +39,12 @@ describe('email templates', () => {
     expect(r.ok && r.value.text).toContain('https://carmart.example/sell/listings/x')
   })
 
+  it('listing_expiring gives the date and links to the seller page', () => {
+    const r = render('listing_expiring', { title: '2019 Toyota HiLux', listingId: 'x', expiresAt: '2026-11-27T10:00:00Z' })
+    expect(r.ok && r.value.subject).toMatch(/expires on 27 Nov 2026/)
+    expect(r.ok && r.value.text).toContain('https://carmart.example/sell/listings/x')
+  })
+
   it('escapes HTML in payload values', () => {
     const r = render('shop_rejected', { shopName: '<script>x</script>', reason: 'a & b' })
     expect(r.ok && r.value.html).not.toContain('<script>')

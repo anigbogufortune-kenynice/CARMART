@@ -19,6 +19,7 @@ const MESSAGES: Record<string, string> = {
 }
 
 const SOLD_MESSAGES: Record<string, string> = { INVALID_STATE: 'Only a live listing can be marked as sold' }
+const RENEW_MESSAGES: Record<string, string> = { INVALID_STATE: 'Only an expired listing can be renewed' }
 
 function rpcError(error: PostgrestError): AppError {
   const incomplete = /^LISTING_INCOMPLETE: (.+)$/.exec(error.message)
@@ -40,6 +41,16 @@ export async function markSold(db: SupabaseClient, listingId: string, version: n
   if (error) {
     const mapped = rpcError(error)
     return err(SOLD_MESSAGES[mapped.code] ? { code: mapped.code, message: SOLD_MESSAGES[mapped.code] } : mapped)
+  }
+  return getMyListing(db, listingId)
+}
+
+/** expired → checking: photos are checked again and it goes live for another 60 days when they pass. */
+export async function renewListing(db: SupabaseClient, listingId: string, version: number): Promise<Result<OwnListing, AppError>> {
+  const { error } = await db.rpc('renew_listing', { p_listing_id: listingId, p_version: version })
+  if (error) {
+    const mapped = rpcError(error)
+    return err(RENEW_MESSAGES[mapped.code] ? { code: mapped.code, message: RENEW_MESSAGES[mapped.code] } : mapped)
   }
   return getMyListing(db, listingId)
 }
