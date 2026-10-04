@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { withRoute } from '@/lib/api/route-helpers'
-import { deleteDraft, updateDraft } from '@/services/listing.service'
+import { deleteDraft, updateListing } from '@/services/listing.service'
 import { getListingForViewer } from '@/services/search.service'
 import { ListingPatchSchema } from '@/types/domain'
 import { err } from '@/types/result'
@@ -15,7 +15,7 @@ export const GET = withRoute({ auth: 'public' }, async ({ db, params }) =>
 
 /** PATCH /api/listings/:id: edit a draft (rejected/expired too); `version` required. */
 export const PATCH = withRoute({ auth: 'user', body: ListingPatchSchema }, async ({ db, params, body }) =>
-  Id.safeParse(params.id).success ? updateDraft(db, params.id, body) : notFound(),
+  Id.safeParse(params.id).success ? updateListing(db, params.id, body) : notFound(),
 )
 
 /** DELETE /api/listings/:id: drafts only. */
