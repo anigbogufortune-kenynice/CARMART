@@ -214,7 +214,7 @@ export const ListingInputSchema = z.object({
 
 ### GET /api/listings/:id
 **Auth:** public for `live`, and for `sold` within 7 days; the owner and admins see any status.
-**Success, 200:** `{ "data": ListingDetail }`, with all fields, ordered photo URLs (`sm`/`md`/`lg`), `ppsr_url: "https://www.ppsr.gov.au/"`, shop summary and `is_saved` (for signed-in users). The owner also gets per-photo `status` and `status_reason`, and the listing's `status_reason` and `review_flags` (as seller-facing text).
+**Success, 200:** `{ "data": ListingDetail }`, with the listing fields (not the plate number), ordered photo URLs (`sm`/`md`/`lg`), shop summary and `is_saved` (for signed-in users). The owner also gets per-photo `status` and `status_reason`, and the listing's `status_reason` and `review_flags` (as seller-facing text).
 **Errors:** 404.
 
 ### GET /api/listings/:id/phone

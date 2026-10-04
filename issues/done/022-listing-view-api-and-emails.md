@@ -28,10 +28,10 @@ As a shop owner, I want to be told when my car is live or needs attention; as a 
 - docs/systems/listing-lifecycle.md: Evaluate rules (enqueue listing_live / listing_rejected / listing_in_review), INV-L3, Computed values (title)
 
 ## Acceptance Criteria
-- [ ] Public: live (and sold < 7 days) listings of approved shops only → 200 with ordered photo URLs sm/md/lg, title, specs, VIN, ppsr_url, shop summary; anything else → 404
-- [ ] Owner/admin: any status, plus per-photo status/reason, status_reason and review_flags as seller-facing text
-- [ ] The evaluate transitions enqueue listing_live, listing_rejected (with per-photo reasons) and listing_in_review (first entry only) in the same transaction
-- [ ] Email templates exist for these three kinds, with links to /sell/listings/[id] (and /cars/[id] for live)
+- [x] Public: live (and sold < 7 days) listings of approved shops only → 200 with ordered photo URLs sm/md/lg, title, specs, VIN, ppsr_url, shop summary; anything else → 404
+- [x] Owner/admin: any status, plus per-photo status/reason, status_reason and review_flags as seller-facing text
+- [x] The evaluate transitions enqueue listing_live, listing_rejected (with per-photo reasons) and listing_in_review (first entry only) in the same transaction
+- [x] Email templates exist for these three kinds, with links to /sell/listings/[id] (and /cars/[id] for live)
 
 ## Files to Modify
 - supabase/migrations/20260928002200_listing_notifications.sql: `evaluate_listing` (create or replace, adds the enqueue calls)
