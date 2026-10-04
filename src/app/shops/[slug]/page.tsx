@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { formatDate } from '@/lib/format'
 import { notFound } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { ListingCard } from '@/components/search/ListingCard'
+import { searchListings } from '@/services/search.service'
 import { getPublicShopBySlug } from '@/services/shop.service'
 
 export const metadata: Metadata = { title: 'Car seller | CarMart' }
@@ -13,9 +15,12 @@ const memberSince = (iso: string) =>
   formatDate(iso, { month: 'long', year: 'numeric' })
 
 export default async function PublicShopPage({ params }: { params: { slug: string } }) {
-  const shop = await getPublicShopBySlug(createServerSupabase(), params.slug)
+  const db = createServerSupabase()
+  const shop = await getPublicShopBySlug(db, params.slug)
   if (!shop.ok) notFound()
   const s = shop.value
+  const cars = await searchListings(db, { sort: 'newest', page: 1 }, { shopId: s.id })
+  const items = cars.ok ? cars.value.items : []
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -34,7 +39,13 @@ export default async function PublicShopPage({ params }: { params: { slug: strin
       {s.description && <p className="mt-6 whitespace-pre-line text-gray-800">{s.description}</p>}
       <section className="mt-10" aria-labelledby="cars-heading">
         <h2 id="cars-heading" className="text-lg font-semibold">Cars for sale</h2>
-        <p className="mt-2 text-gray-600">No cars listed yet.</p>
+        {items.length > 0 ? (
+          <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((car) => <li key={car.id}><ListingCard car={car} /></li>)}
+          </ul>
+        ) : (
+          <p className="mt-2 text-gray-600">No cars listed yet.</p>
+        )}
       </section>
     </main>
   )
