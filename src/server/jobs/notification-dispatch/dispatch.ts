@@ -65,6 +65,6 @@ export async function dispatchPending(db: SupabaseClient, limit: number, sender:
 /** Entry point for /api/internal/dispatch-notifications: env-configured sender + service-role client. */
 export async function runDispatch(limit = 50): Promise<DispatchResult> {
   const [{ jobsEnv }, { adminClient }] = await Promise.all([import('../env'), import('../supabase-admin')])
-  const env = jobsEnv()
+  const env = jobsEnv(['email'])
   return dispatchPending(adminClient(), limit, emailSender(env.EMAIL_PROVIDER, env.RESEND_API_KEY, env.EMAIL_FROM))
 }

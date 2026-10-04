@@ -20,4 +20,11 @@ describe('jobs env', () => {
   it('requires a 32+ character internal secret', () => {
     expect(() => parseJobsEnv({ ...base, INTERNAL_JOB_SECRET: 'short' })).toThrow()
   })
+  it('a missing email setting never blocks photo checks (and vice versa)', () => {
+    const half = { ...base, EMAIL_PROVIDER: 'resend', CAR_CHECK_PROVIDER: 'claude', ANTHROPIC_API_KEY: 'sk-ant-x', RESEND_API_KEY: 're_x' }
+    expect(() => parseJobsEnv(half, ['images'])).not.toThrow()
+    expect(() => parseJobsEnv(half, ['email'])).toThrow('Resend credentials required')
+    expect(() => parseJobsEnv({ ...base, CAR_CHECK_PROVIDER: 'claude' }, ['email'])).not.toThrow()
+    expect(() => parseJobsEnv(half, [])).not.toThrow()
+  })
 })

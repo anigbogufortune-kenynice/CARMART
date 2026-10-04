@@ -189,5 +189,5 @@ export async function processNextJobs(
 
 /** Entry point for POST /api/internal/process-image-checks. */
 export async function runImageChecks(limit: number, jobId?: string): Promise<PipelineResult> {
-  return processNextJobs(adminClient(), limit, getProviders(jobsEnv()), jobId)
+  return processNextJobs(adminClient(), limit, getProviders(jobsEnv(['images'])), jobId)
 }
