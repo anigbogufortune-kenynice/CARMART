@@ -22,10 +22,10 @@ As a buyer, I want to save cars I like, so that I can compare them later.
 - docs/api-contracts.md: Saved listings
 
 ## Acceptance Criteria
-- [ ] `saved_listings` with RLS (own rows only)
-- [ ] POST /api/saved-listings is idempotent (201 new / 200 existing); only publicly visible listings can be saved (404 otherwise); DELETE → 204
-- [ ] GET returns saved cars newest first, and ones no longer visible are flagged `unavailable: true`
-- [ ] A heart 'Save' toggle on /cars/[id] (visitors are sent to /sign-in?next=…); /account/saved lists the cars, with a 'No longer available' state
+- [x] `saved_listings` with RLS (own rows only)
+- [x] POST /api/saved-listings is idempotent (201 new / 200 existing); only publicly visible listings can be saved (404 otherwise); DELETE → 204
+- [x] GET returns saved cars newest first, and ones no longer visible are flagged `unavailable: true`
+- [x] A heart 'Save' toggle on /cars/[id] (visitors are sent to /sign-in?next=…); /account/saved lists the cars, with a 'No longer available' state
 
 ## Files to Modify
 - supabase/migrations/20260928002900_saved_listings.sql

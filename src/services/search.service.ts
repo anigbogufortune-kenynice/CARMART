@@ -198,3 +198,14 @@ export async function searchListings(
     page: { number: query.page, size: SEARCH_PAGE_SIZE, total: result.total },
   })
 }
+
+/** Live listings and approved shops for sitemap.xml (public data only, via RLS). */
+export async function sitemapEntries(db: SupabaseClient): Promise<{
+  listings: { id: string; updated_at: string }[]; shops: { slug: string; created_at: string }[]
+}> {
+  const [listings, shops] = await Promise.all([
+    db.from('listings').select('id,updated_at').eq('status', 'live').order('updated_at', { ascending: false }).limit(5000),
+    db.from('public_shops').select('slug,created_at').limit(5000),
+  ])
+  return { listings: listings.data ?? [], shops: shops.data ?? [] }
+}

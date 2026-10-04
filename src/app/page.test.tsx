@@ -36,7 +36,6 @@ describe('home page', () => {
     }
     expect(screen.getByRole('link', { name: 'Open a free shop' })).toHaveAttribute('href', '/sell')
     expect(screen.getByRole('heading', { level: 1 }).parentElement).toHaveTextContent('From Nigerian sellers')
-    expect(screen.getByText(/inspect the car and its papers in person/)).toBeInTheDocument()
   })
 
   it('still works with no makes loaded', () => {

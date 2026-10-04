@@ -1,12 +1,16 @@
 import type { Metadata } from 'next'
 import { formatDate } from '@/lib/format'
 import { notFound } from 'next/navigation'
+import { shopMetadata, siteUrl } from '@/lib/seo'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { ListingCard } from '@/components/search/ListingCard'
 import { searchListings } from '@/services/search.service'
 import { getPublicShopBySlug } from '@/services/shop.service'
 
-export const metadata: Metadata = { title: 'Car seller | CarMart' }
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const shop = await getPublicShopBySlug(createServerSupabase(), params.slug)
+  return shop.ok ? shopMetadata(shop.value, siteUrl()) : { title: 'Shop not found | CarMart', robots: { index: false } }
+}
 
 const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('')
