@@ -21,6 +21,24 @@ describe('email templates', () => {
     expect(r.ok && r.value.text).toContain('https://carmart.example/shops/coastal-cars')
   })
 
+  it('listing_live says the car is live and links to its public page', () => {
+    const r = render('listing_live', { title: '2019 Toyota HiLux', listingId: 'x' })
+    expect(r.ok && r.value.subject).toContain('is live')
+    expect(r.ok && r.value.text).toContain('https://carmart.example/cars/x')
+  })
+
+  it('listing_rejected lists each photo reason and links to the seller page', () => {
+    const r = render('listing_rejected', { title: '2019 Toyota HiLux', listingId: 'x', photos: [{ position: 2, reason: 'Stock photo' }] })
+    expect(r.ok && r.value.text).toContain('Photo 2: Stock photo')
+    expect(r.ok && r.value.text).toContain('https://carmart.example/sell/listings/x')
+  })
+
+  it('listing_in_review explains the wait and links to the seller page', () => {
+    const r = render('listing_in_review', { title: '2019 Toyota HiLux', listingId: 'x' })
+    expect(r.ok && r.value.subject).toContain('being reviewed')
+    expect(r.ok && r.value.text).toContain('https://carmart.example/sell/listings/x')
+  })
+
   it('escapes HTML in payload values', () => {
     const r = render('shop_rejected', { shopName: '<script>x</script>', reason: 'a & b' })
     expect(r.ok && r.value.html).not.toContain('<script>')

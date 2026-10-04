@@ -28,6 +28,34 @@ const TEMPLATES: Record<string, Template> = {
     ],
     link: { href: `${site}/sell`, label: 'Update your shop' },
   }),
+  listing_live: (p, site) => ({
+    subject: `Your ${str(p.title)} is live on CarMart`,
+    lines: [
+      `Good news: every photo passed our checks and your ${str(p.title)} is now visible to buyers.`,
+      'It stays live for 60 days. We’ll remind you before it expires.',
+    ],
+    link: { href: `${site}/cars/${str(p.listingId)}`, label: 'See your listing' },
+  }),
+  listing_rejected: (p, site) => {
+    const photos = Array.isArray(p.photos) ? (p.photos as { position?: unknown; reason?: unknown }[]) : []
+    return {
+      subject: `Your ${str(p.title)} needs new photos`,
+      lines: [
+        `We couldn’t publish your ${str(p.title)} because some photos didn’t pass our checks.`,
+        ...photos.map((ph) => `Photo ${str(ph.position)}: ${str(ph.reason)}`),
+        'Delete or replace those photos, then submit the listing again.',
+      ],
+      link: { href: `${site}/sell/listings/${str(p.listingId)}`, label: 'Fix your listing' },
+    }
+  },
+  listing_in_review: (p, site) => ({
+    subject: `Your ${str(p.title)} is being reviewed`,
+    lines: [
+      `Our team is taking a closer look at your ${str(p.title)} before it goes live.`,
+      'This usually takes less than a day. We’ll email you when it’s done.',
+    ],
+    link: { href: `${site}/sell/listings/${str(p.listingId)}`, label: 'View your listing' },
+  }),
 }
 
 const escape = (s: string) =>
