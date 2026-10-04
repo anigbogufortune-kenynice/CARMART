@@ -25,11 +25,11 @@ As a shop owner, I want to mark my car sold, so that buyers stop contacting me a
 - docs/systems/listing-lifecycle.md: mark_sold transition, Computed values (sold visibility), Implementation Notes (unpublishing)
 
 ## Acceptance Criteria
-- [ ] `mark_listing_sold(id, version)` live → sold with sold_at; other states → 409 INVALID_STATE
-- [ ] Sold listings leave search immediately, stay readable by URL for sold_visible_days, then 404
-- [ ] An AFTER UPDATE trigger on listings → removed calls /api/internal/unpublish-listing via pg_net; the daily `unpublish_old_sold()` does the same for sold listings past 7 days
-- [ ] unpublish-listing deletes all public variants for the listing and nulls public_paths (idempotent)
-- [ ] The seller page has 'Mark as sold' with confirmation; a sold listing shows 'Sold on <date>'
+- [x] `mark_listing_sold(id, version)` live → sold with sold_at; other states → 409 INVALID_STATE
+- [x] Sold listings leave search immediately, stay readable by URL for sold_visible_days, then 404
+- [x] An AFTER UPDATE trigger on listings → removed calls /api/internal/unpublish-listing via pg_net; the daily `unpublish_old_sold()` does the same for sold listings past 7 days
+- [x] unpublish-listing deletes all public variants for the listing and nulls public_paths (idempotent)
+- [x] The seller page has 'Mark as sold' with confirmation; a sold listing shows 'Sold on <date>'
 
 ## Files to Modify
 - supabase/migrations/20260928002400_sold_and_unpublish.sql

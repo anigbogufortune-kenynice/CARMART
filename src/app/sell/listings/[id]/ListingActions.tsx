@@ -17,6 +17,37 @@ export function ListingActions({ listingId, version, status, blockers }: Props) 
     return () => clearInterval(timer)
   }, [status, router])
 
+  async function markSold() {
+    if (!window.confirm('Mark this car as sold? It leaves search straight away and can’t be put back on sale.')) return
+    setBusy(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/listings/${listingId}/mark-sold`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ version }),
+      })
+      const json = (await res.json()) as { error?: { message: string } }
+      if (!res.ok) setError(json.error?.message ?? 'Couldn’t mark as sold. Try again.')
+      router.refresh()
+    } catch {
+      setError('Couldn’t mark as sold. Check your connection and try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (status === 'live') {
+    return (
+      <div className="mt-6 rounded border border-gray-200 p-4">
+        <button type="button" onClick={() => void markSold()} disabled={busy}
+          className="rounded border border-gray-900 px-4 py-2 text-gray-900 disabled:opacity-50">
+          {busy ? 'Saving…' : 'Mark as sold'}
+        </button>
+        <p className="mt-2 text-sm text-gray-600">Sold the car? Mark it so buyers stop contacting you.</p>
+        {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+      </div>
+    )
+  }
+
   if (status !== 'draft' && status !== 'rejected') return null
 
   async function submit() {

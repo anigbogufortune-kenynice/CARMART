@@ -41,6 +41,28 @@ export async function unpublishImage(db: SupabaseClient, imageId: string): Promi
   return { found: true }
 }
 
+/**
+ * Delete every public variant of a listing's photos (deleted photos included) and clear their paths.
+ * Idempotent: returns how many storage objects were actually deleted.
+ */
+export async function unpublishListing(db: SupabaseClient, listingId: string): Promise<{ deleted: number }> {
+  const { data, error } = await db.from('listing_images').select('id').eq('listing_id', listingId)
+  if (error) throw new Error(`unpublish listing read failed: ${error.message}`)
+  const ids = (data ?? []).map((r) => r.id as string)
+  if (ids.length === 0) return { deleted: 0 }
+  const paths = ids.flatMap((id) => Object.values(publicPaths(listingId, id)))
+  const removed = await db.storage.from(PUBLIC_BUCKET).remove(paths)
+  if (removed.error) throw new Error(`remove variants failed: ${removed.error.message}`)
+  const cleared = await db.from('listing_images').update({ public_paths: null }).eq('listing_id', listingId).not('public_paths', 'is', null)
+  if (cleared.error) throw new Error(`unpublish listing update failed: ${cleared.error.message}`)
+  return { deleted: removed.data?.length ?? 0 }
+}
+
+/** Entry point for POST /api/internal/unpublish-listing. */
+export async function runUnpublishListing(listingId: string): Promise<{ deleted: number }> {
+  return unpublishListing(adminClient(), listingId)
+}
+
 /** Entry point for POST /api/internal/unpublish-image. */
 export async function runUnpublish(imageId: string): Promise<{ found: boolean }> {
   return unpublishImage(adminClient(), imageId)

@@ -6,6 +6,8 @@ type Props = {
   statusReason: string | null
   reviewFlags: string[]
   liveAt: string | null
+  soldAt?: string | null
+  expiresAt?: string | null
   photos: { status: ImageStatus | string; status_reason: string | null }[]
 }
 
@@ -20,7 +22,7 @@ const PHOTOS_REJECTED = 'One or more photos were rejected'
 
 const day = (iso: string) => formatDate(iso)
 
-export function ListingStatusBanner({ status, statusReason, reviewFlags, liveAt, photos }: Props) {
+export function ListingStatusBanner({ status, statusReason, reviewFlags, liveAt, soldAt = null, photos }: Props) {
   const box = 'mt-4 rounded px-4 py-3 text-sm'
   if (status === 'checking') {
     return <p role="status" className={`${box} bg-blue-50 text-blue-900`}>Checking your photos… This usually takes under a minute.</p>
@@ -53,7 +55,13 @@ export function ListingStatusBanner({ status, statusReason, reviewFlags, liveAt,
     )
   }
   if (status === 'expired') return <p role="status" className={`${box} bg-gray-100 text-gray-800`}>This listing has expired.</p>
-  if (status === 'sold') return <p role="status" className={`${box} bg-purple-50 text-purple-900`}>Marked as sold.</p>
+  if (status === 'sold') {
+    return (
+      <p role="status" className={`${box} bg-purple-50 text-purple-900`}>
+        {soldAt ? `Sold on ${day(soldAt)}. Buyers can still open it for 7 days.` : 'Marked as sold.'}
+      </p>
+    )
+  }
   if (status === 'removed') {
     return <p role="alert" className={`${box} bg-red-100 text-red-900`}>Removed by CarMart{statusReason ? `: ${statusReason}` : '.'}</p>
   }

@@ -18,6 +18,8 @@ const MESSAGES: Record<string, string> = {
   DUPLICATE_LISTING: 'You already have an active listing for this VIN',
 }
 
+const SOLD_MESSAGES: Record<string, string> = { INVALID_STATE: 'Only a live listing can be marked as sold' }
+
 function rpcError(error: PostgrestError): AppError {
   const incomplete = /^LISTING_INCOMPLETE: (.+)$/.exec(error.message)
   if (incomplete) return { code: 'LISTING_INCOMPLETE', message: `Complete these fields first: ${incomplete[1]}` }
@@ -29,5 +31,15 @@ function rpcError(error: PostgrestError): AppError {
 export async function submitListing(db: SupabaseClient, listingId: string, version: number): Promise<Result<OwnListing, AppError>> {
   const { error } = await db.rpc('submit_listing', { p_listing_id: listingId, p_version: version })
   if (error) return err(rpcError(error))
+  return getMyListing(db, listingId)
+}
+
+/** live → sold (docs/systems/listing-lifecycle.md → mark_sold). Stays readable by URL for 7 days. */
+export async function markSold(db: SupabaseClient, listingId: string, version: number): Promise<Result<OwnListing, AppError>> {
+  const { error } = await db.rpc('mark_listing_sold', { p_listing_id: listingId, p_version: version })
+  if (error) {
+    const mapped = rpcError(error)
+    return err(SOLD_MESSAGES[mapped.code] ? { code: mapped.code, message: SOLD_MESSAGES[mapped.code] } : mapped)
+  }
   return getMyListing(db, listingId)
 }
