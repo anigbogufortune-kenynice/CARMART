@@ -52,7 +52,12 @@ export default async function EditListingPage({ params }: { params: { id: string
     <main className="mx-auto max-w-2xl px-4 py-12">
       <Link href="/sell/listings" className="text-sm underline">← Your listings</Link>
       <h1 className="mt-4 text-2xl font-semibold">{listing.title}</h1>
-      <p className="mt-1 text-sm text-gray-600">Status: {LISTING_STATUS_LABELS[listing.status]}</p>
+      <p className="mt-1 text-sm text-gray-600">
+        Status: {LISTING_STATUS_LABELS[listing.status]}
+        {(listing.status === 'live' || listing.status === 'sold') && (
+          <> · <Link href={`/cars/${listing.id}`} className="underline">See what buyers see</Link></>
+        )}
+      </p>
       <ListingStatusBanner status={listing.status} statusReason={listing.status_reason} reviewFlags={listing.review_flags}
         liveAt={listing.live_at} soldAt={listing.sold_at} expiresAt={listing.expires_at} photos={photos} />
       <ListingActions listingId={listing.id} version={listing.version} status={listing.status} blockers={blockers} />
