@@ -1,5 +1,7 @@
 import '@fontsource-variable/archivo/wdth.css'
 import Link from 'next/link'
+import { ListingCard } from '@/components/search/ListingCard'
+import type { ListingCard as Card } from '@/services/search.service'
 import { BODY_TYPES, BODY_TYPE_LABELS, CONDITIONS, CONDITION_LABELS, NG_STATES, stateLabel } from '@/types/domain'
 
 /**
@@ -75,7 +77,7 @@ const REASONS = [
   },
 ]
 
-export function HomeView({ makes }: { makes: HomeMake[] }) {
+export function HomeView({ makes, latest = [] }: { makes: HomeMake[]; latest?: Card[] }) {
   const byName = new Map(makes.map((m) => [m.name, m.id]))
   const popular = POPULAR.filter((n) => byName.has(n))
 
@@ -121,6 +123,18 @@ export function HomeView({ makes }: { makes: HomeMake[] }) {
                 </Link>
               </li>
             ))}
+          </ul>
+        </section>
+      )}
+
+      {latest.length > 0 && (
+        <section aria-labelledby="latest-heading" className="mx-auto max-w-6xl px-4 pt-14">
+          <div className="flex items-end justify-between gap-4">
+            <h2 id="latest-heading" style={display} className="text-xl font-semibold text-[#14284B]">Latest cars</h2>
+            <Link href="/cars" className="text-sm font-semibold text-[#14284B] underline decoration-[#B8924F] decoration-2 underline-offset-4">See all cars</Link>
+          </div>
+          <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {latest.map((car) => <li key={car.id}><ListingCard car={car} /></li>)}
           </ul>
         </section>
       )}

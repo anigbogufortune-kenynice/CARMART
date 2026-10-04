@@ -44,4 +44,18 @@ describe('home page', () => {
     expect(screen.queryByRole('heading', { name: 'Popular makes' })).toBeNull()
     expect(screen.getByRole('option', { name: 'Any make' })).toBeInTheDocument()
   })
+
+  it('shows the latest live cars when there are some, with a link to all cars', () => {
+    const latest = [{
+      id: 'c1', title: '2019 Toyota HiLux', price_cents: 1_850_000_000, currency: 'NGN', year: 2019, odometer_km: 84_000,
+      condition: 'foreign_used', body_type: 'pickup', transmission: 'automatic', fuel: 'diesel', city: 'Ikeja', state: 'Lagos' as const,
+      thumbnail_url: null, shop: { name: 'Coastal Cars', slug: 'coastal-cars', verified: true }, live_at: null,
+    }]
+    const { rerender } = render(<HomeView makes={makes} latest={latest} />)
+    expect(screen.getByRole('heading', { name: 'Latest cars' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /2019 Toyota HiLux/ })).toHaveAttribute('href', '/cars/c1')
+    expect(screen.getByRole('link', { name: 'See all cars' })).toHaveAttribute('href', '/cars')
+    rerender(<HomeView makes={makes} latest={[]} />)
+    expect(screen.queryByRole('heading', { name: 'Latest cars' })).toBeNull()
+  })
 })
