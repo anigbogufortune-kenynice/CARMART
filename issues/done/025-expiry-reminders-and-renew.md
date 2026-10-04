@@ -25,10 +25,10 @@ As a shop owner, I want a reminder before my listing expires and an easy renew b
 - docs/systems/listing-lifecycle.md: expire + renew transitions, Evaluate rule 4 (expires_at), EC-L6, EC-L7
 
 ## Acceptance Criteria
-- [ ] `expire_listings()` (every 15 min) moves live listings with expires_at < now to expired; in_review listings never expire
-- [ ] `queue_expiry_reminders()` (hourly) enqueues one `listing_expiring` per live period for listings expiring within 7 days and sets expiry_reminder_sent_at
-- [ ] `renew_listing(id, version)` expired → checking; re-queues checks for all non-deleted photos; re-checks the cap (LISTING_LIMIT_REACHED) and VIN duplicates; on going live, expires_at = now + 60 d and the reminder flag is reset
-- [ ] The seller banner shows 'Expires on <date>' for live and a Renew button for expired; the listing_expiring template links to the listing
+- [x] `expire_listings()` (every 15 min) moves live listings with expires_at < now to expired; in_review listings never expire
+- [x] `queue_expiry_reminders()` (hourly) enqueues one `listing_expiring` per live period for listings expiring within 7 days and sets expiry_reminder_sent_at
+- [x] `renew_listing(id, version)` expired → checking; re-queues checks for all non-deleted photos; re-checks the cap (LISTING_LIMIT_REACHED) and VIN duplicates; on going live, expires_at = now + 60 d and the reminder flag is reset
+- [x] The seller banner shows 'Expires on <date>' for live and a Renew button for expired; the listing_expiring template links to the listing
 
 ## Files to Modify
 - supabase/migrations/20260928002500_expiry_and_renew.sql: functions + pg_cron schedules
