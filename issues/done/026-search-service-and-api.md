@@ -27,12 +27,12 @@ As a visitor, I want to filter cars by what matters to me, so that I only see re
 - docs/systems/listing-lifecycle.md: INV-L3 (approved shops only), sold leaves search immediately
 
 ## Acceptance Criteria
-- [ ] Only live listings of approved shops; filters make_id, model_id, price_min/max (cents), year_min/max, km_max, body_type, transmission, fuel, state, city (case-insensitive), postcode combine with AND
-- [ ] `q` uses full-text search (search_vector, `websearch_to_tsquery('english', q)`)
-- [ ] Sorts: newest (live_at desc, default), price_asc, price_desc, km_asc, year_desc; ties broken by id
-- [ ] 24 per page with an accurate total; page beyond the end → empty data with the correct total
-- [ ] Unknown query keys or bad values → 422; one query for the results + thumbnails (no N+1)
-- [ ] The dev seed adds 30 live sample listings across 3 approved shops (with fixture photos marked passed) for local demos
+- [x] Only live listings of approved shops; filters make_id, model_id, price_min/max (cents), year_min/max, km_max, body_type, transmission, fuel, state, city (case-insensitive), postcode combine with AND
+- [x] `q` uses full-text search (search_vector, `websearch_to_tsquery('english', q)`)
+- [x] Sorts: newest (live_at desc, default), price_asc, price_desc, km_asc, year_desc; ties broken by id
+- [x] 24 per page with an accurate total; page beyond the end → empty data with the correct total
+- [x] Unknown query keys or bad values → 422; one query for the results + thumbnails (no N+1)
+- [x] The dev seed adds 30 live sample listings across 3 approved shops (with fixture photos marked passed) for local demos
 
 ## Files to Modify
 - supabase/migrations/20260928002600_search.sql: filter/sort indexes + `search_listings(...)` SQL function
