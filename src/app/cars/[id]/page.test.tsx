@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh: vi.fn(), replace: vi.fn() }) }))
 import type { PublicListingView } from '@/services/search.service'
 import { ListingDetail } from './ListingDetail'
 
@@ -22,10 +24,10 @@ describe('/cars/[id] listing detail', () => {
     expect(screen.getByText('Verified shop')).toBeInTheDocument()
   })
 
-  it('live: contact actions are shown but disabled until messaging arrives', () => {
-    render(<ListingDetail listing={listing} />)
+  it('live: Save works; Message seller and Report stay disabled until they arrive', () => {
+    render(<ListingDetail listing={listing} signedIn saved />)
     expect(screen.getByRole('button', { name: 'Message seller' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Report' })).toBeDisabled()
   })
 

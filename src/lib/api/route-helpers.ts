@@ -45,6 +45,8 @@ type Options<BS extends ZodType | undefined, QS extends ZodType | undefined> = {
   body?: BS
   query?: QS
   successStatus?: 200 | 201 | 202 | 204
+  /** Pick the success status from the result (e.g. 201 created / 200 already existed). */
+  statusFrom?: (value: unknown) => 200 | 201
   /** The handler returns `Page<T>`; respond `{ data: items, page }` (docs/api-contracts.md pagination). */
   paginated?: boolean
 }
@@ -112,7 +114,7 @@ export function withRoute<BS extends ZodType | undefined = undefined, QS extends
         req, params: context.params ?? {}, body: body as Infer<BS>, query: query as Infer<QS>, db, user, requestId,
       })
       if (!result.ok) return fail(result.error.code, result.error.message)
-      const status = options.successStatus ?? 200
+      const status = options.statusFrom ? options.statusFrom(result.value) : options.successStatus ?? 200
       if (status === 204) return new NextResponse(null, { status: 204 })
       if (options.paginated) {
         const { items, page } = result.value as Page<unknown>

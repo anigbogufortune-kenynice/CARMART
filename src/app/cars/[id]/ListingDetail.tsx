@@ -1,4 +1,5 @@
 import { PhotoGallery } from '@/components/listing/PhotoGallery'
+import { SaveButton } from '@/components/listing/SaveButton'
 import { SpecTable } from '@/components/listing/SpecTable'
 import { ShopCard } from '@/components/shop/ShopCard'
 import { formatDate, formatNaira } from '@/lib/format'
@@ -8,7 +9,7 @@ import { CONDITION_LABELS } from '@/types/domain'
 const placeholder = 'w-full rounded-md px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60'
 
 /** Public listing page body (server-rendered; the gallery is the only client part). */
-export function ListingDetail({ listing }: { listing: PublicListingView }) {
+export function ListingDetail({ listing, signedIn = false, saved = false }: { listing: PublicListingView; signedIn?: boolean; saved?: boolean }) {
   const sold = listing.status === 'sold'
   const condition = listing.condition && listing.condition in CONDITION_LABELS
     ? CONDITION_LABELS[listing.condition as keyof typeof CONDITION_LABELS] : null
@@ -40,7 +41,7 @@ export function ListingDetail({ listing }: { listing: PublicListingView }) {
                 <div className="mt-5 space-y-2">
                   <button type="button" disabled className={`${placeholder} bg-[#14284B] text-white`}>Message seller</button>
                   <div className="grid grid-cols-2 gap-2">
-                    <button type="button" disabled className={`${placeholder} border border-[#CBD3DF] bg-white text-[#14284B]`}>Save</button>
+                    <SaveButton listingId={listing.id} signedIn={signedIn} initialSaved={saved} />
                     <button type="button" disabled className={`${placeholder} border border-[#CBD3DF] bg-white text-[#14284B]`}>Report</button>
                   </div>
                   <p className="text-xs text-[#8A94A6]">Messaging the seller opens soon.</p>
