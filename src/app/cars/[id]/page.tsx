@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { isUuid } from '@/lib/uuid'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { isSaved } from '@/services/saved.service'
 import { getListingForViewer, type ListingView, type PublicListingView } from '@/services/search.service'
 import { ListingDetail } from './ListingDetail'
 
@@ -37,5 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ListingPage({ params }: Props) {
   const listing = await load(params.id)
   if (!listing) notFound()
-  return <ListingDetail listing={listing} />
+  const db = createServerSupabase()
+  const { data: auth } = await db.auth.getUser()
+  const saved = auth.user ? await isSaved(db, listing.id) : false
+  return <ListingDetail listing={listing} signedIn={!!auth.user} saved={saved} />
 }
