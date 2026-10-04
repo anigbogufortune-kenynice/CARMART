@@ -38,7 +38,9 @@
 | `AI_CHECK_PROVIDER` | `sightengine` |
 | `SIGHTENGINE_API_USER` / `SIGHTENGINE_API_SECRET` | From your Sightengine dashboard |
 | `EMAIL_PROVIDER` | `resend` |
-| `RESEND_API_KEY` / `EMAIL_FROM` | From Resend (verified sending domain) |
+| `RESEND_API_KEY` / `EMAIL_FROM` | From Resend. `EMAIL_FROM` is required, e.g. `CarMart <onboarding@resend.dev>` until your own domain is verified (that sender can only email your own address) |
+
+**Changing a variable needs a redeploy** (Deploys → Trigger deploy) before functions see it. Copy keys in full: a cut-off `SUPABASE_SERVICE_ROLE_KEY` (the `sb_secret_…` key, or the legacy `service_role` JWT) makes every photo check and email fail with 401.
 
 For a private test site without vendor accounts you can use `CAR_CHECK_PROVIDER=fake`, `AI_CHECK_PROVIDER=fake` and `EMAIL_PROVIDER=log`. **The fake checks pass every photo**, so never use them on a public site.
 
