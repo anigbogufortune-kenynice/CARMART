@@ -43,4 +43,9 @@ describe('ListingStatusBanner', () => {
     render(<ListingStatusBanner {...base} status="sold" soldAt="2026-09-28T10:00:00Z" />)
     expect(screen.getByText(/^Sold on 28 Sept? 2026. Buyers can still open it for 7 days.$/)).toBeInTheDocument()
   })
+
+  it('live shows the expiry date', () => {
+    render(<ListingStatusBanner {...base} status="live" liveAt="2026-09-28T10:00:00Z" expiresAt="2026-11-27T10:00:00Z" />)
+    expect(screen.getByRole('status')).toHaveTextContent(/Expires on 27 Nov 2026/)
+  })
 })

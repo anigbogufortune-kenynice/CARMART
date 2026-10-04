@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/format'
 import { err, ok, type AppError, type Result } from '@/types/result'
 
 /**
@@ -46,6 +47,17 @@ const TEMPLATES: Record<string, Template> = {
         'Delete or replace those photos, then submit the listing again.',
       ],
       link: { href: `${site}/sell/listings/${str(p.listingId)}`, label: 'Fix your listing' },
+    }
+  },
+  listing_expiring: (p, site) => {
+    const when = p.expiresAt ? formatDate(str(p.expiresAt)) : 'soon'
+    return {
+      subject: `Your ${str(p.title)} expires on ${when}`,
+      lines: [
+        `Your ${str(p.title)} listing expires on ${when}.`,
+        'Sold it already? Mark it as sold. Still selling? After it expires you can renew it for another 60 days.',
+      ],
+      link: { href: `${site}/sell/listings/${str(p.listingId)}`, label: 'Manage your listing' },
     }
   },
   listing_in_review: (p, site) => ({

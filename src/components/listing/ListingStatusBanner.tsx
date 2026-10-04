@@ -22,13 +22,13 @@ const PHOTOS_REJECTED = 'One or more photos were rejected'
 
 const day = (iso: string) => formatDate(iso)
 
-export function ListingStatusBanner({ status, statusReason, reviewFlags, liveAt, soldAt = null, photos }: Props) {
+export function ListingStatusBanner({ status, statusReason, reviewFlags, liveAt, soldAt = null, expiresAt = null, photos }: Props) {
   const box = 'mt-4 rounded px-4 py-3 text-sm'
   if (status === 'checking') {
     return <p role="status" className={`${box} bg-blue-50 text-blue-900`}>Checking your photos… This usually takes under a minute.</p>
   }
   if (status === 'live') {
-    return <p role="status" className={`${box} bg-green-50 text-green-900`}>Live since {liveAt ? day(liveAt) : 'today'}. Buyers can find this car now.</p>
+    return <p role="status" className={`${box} bg-green-50 text-green-900`}>Live since {liveAt ? day(liveAt) : 'today'}.{expiresAt ? ` Expires on ${day(expiresAt)}.` : ''} Buyers can find this car now.</p>
   }
   if (status === 'in_review') {
     const lines = reviewFlags.map((f) => FLAG_TEXT[f]).filter(Boolean)
@@ -54,7 +54,9 @@ export function ListingStatusBanner({ status, statusReason, reviewFlags, liveAt,
       </div>
     )
   }
-  if (status === 'expired') return <p role="status" className={`${box} bg-gray-100 text-gray-800`}>This listing has expired.</p>
+  if (status === 'expired') {
+    return <p role="status" className={`${box} bg-gray-100 text-gray-800`}>This listing has expired. Renew it to put it back on sale for another 60 days.</p>
+  }
   if (status === 'sold') {
     return (
       <p role="status" className={`${box} bg-purple-50 text-purple-900`}>
