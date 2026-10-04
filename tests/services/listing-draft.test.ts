@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { createDraft, deleteDraft, updateDraft } from '@/services/listing.service'
+import { createDraft, deleteDraft, updateListing } from '@/services/listing.service'
 import { createShop } from '@/services/shop.service'
 import { adminDb, asUser, createUser, resetDb } from '../helpers/supabase-test'
 
@@ -40,12 +40,12 @@ describe('createDraft', () => {
   })
 })
 
-describe('updateDraft', () => {
+describe('updateListing', () => {
   it('updates fields without changing the version', async () => {
     const { db } = await owner()
     const d = await createDraft(db, {})
     if (!d.ok) throw new Error('draft')
-    const res = await updateDraft(db, d.value.id, { version: 1, colour: 'Silver', year: 2019 })
+    const res = await updateListing(db, d.value.id, { version: 1, colour: 'Silver', year: 2019 })
     expect(res).toMatchObject({ ok: true, value: { colour: 'Silver', year: 2019, version: 1 } })
   })
 
@@ -53,8 +53,8 @@ describe('updateDraft', () => {
     const { db } = await owner()
     const d = await createDraft(db, { state: 'Lagos', city: 'Ikeja' })
     if (!d.ok) throw new Error('draft')
-    expect(await updateDraft(db, d.value.id, { version: 1, state: 'Rivers', city: 'Port Harcourt' })).toMatchObject({ ok: true, value: { state: 'Rivers' } })
-    expect(await updateDraft(db, d.value.id, { version: 2, colour: 'Red' })).toMatchObject({ ok: false, error: { code: 'VERSION_CONFLICT' } })
+    expect(await updateListing(db, d.value.id, { version: 1, state: 'Rivers', city: 'Port Harcourt' })).toMatchObject({ ok: true, value: { state: 'Rivers' } })
+    expect(await updateListing(db, d.value.id, { version: 2, colour: 'Red' })).toMatchObject({ ok: false, error: { code: 'VERSION_CONFLICT' } })
   })
 
   it('INVALID_STATE for a non-draft; NOT_FOUND for someone else’s listing', async () => {
@@ -62,11 +62,11 @@ describe('updateDraft', () => {
     const d = await createDraft(db, {})
     if (!d.ok) throw new Error('draft')
     const other = await owner('b@x.au')
-    expect(await updateDraft(other.db, d.value.id, { version: 1, colour: 'Red' })).toMatchObject({ ok: false, error: { code: 'NOT_FOUND' } })
+    expect(await updateListing(other.db, d.value.id, { version: 1, colour: 'Red' })).toMatchObject({ ok: false, error: { code: 'NOT_FOUND' } })
     await adminDb().from('listings').update({ status: 'in_review', make_other: 'Holden', model_other: 'Kingswood', year: 1975, odometer_km: 1,
       price_cents: 350_000_000, condition: 'nigerian_used', body_type: 'sedan', transmission: 'manual', fuel: 'petrol', colour: 'Red', vin: '6H8KZ9A1234567890',
       state: 'Lagos', city: 'Ikeja' }).eq('id', d.value.id)
-    expect(await updateDraft(db, d.value.id, { version: 1, colour: 'Blue' })).toMatchObject({ ok: false, error: { code: 'INVALID_STATE' } })
+    expect(await updateListing(db, d.value.id, { version: 1, colour: 'Blue' })).toMatchObject({ ok: false, error: { code: 'INVALID_STATE' } })
   })
 })
 

@@ -121,4 +121,19 @@ describe('ListingForm fields', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/listings/l1', expect.objectContaining({ method: 'PATCH' }))
     expect(lastBody()).toMatchObject({ version: 3, year: 2019, price_cents: 1_850_000_000 })
   })
+
+  it('live mode warns that identity changes re-check the listing and saves as changes', () => {
+    render(
+      <ListingForm
+        mode="edit"
+        live
+        listing={{ id: 'l1', version: 3, make_id: TOYOTA, model_id: HILUX, make_other: null, model_other: null, year: 2019,
+          odometer_km: 84000, price_cents: 1_850_000_000, condition: 'foreign_used', body_type: 'pickup', transmission: 'automatic', fuel: 'diesel', colour: 'White',
+          vin: 'JTFST22P900123456', rego: null, rego_expiry: null, description: '', state: 'FCT', city: 'Wuse' }}
+        onSaved={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('Changing VIN, make, model or year will re-check your listing')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument()
+  })
 })

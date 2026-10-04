@@ -81,7 +81,7 @@ const LISTING_COLUMNS =
   'colour,vin,rego,rego_expiry,description,state,city,status,status_reason,review_flags,submitted_at,live_at,' +
   'expires_at,sold_at,version,created_at,updated_at'
 
-/** Statuses whose fields the owner may freely edit (live edits arrive in issue 023). */
+/** Statuses whose fields the owner may freely edit; live listings follow the live-edit rules. */
 const DRAFT_EDITABLE: ListingStatus[] = ['draft', 'rejected', 'expired']
 
 function validationError(error: z.ZodError): AppError {
@@ -140,36 +140,62 @@ export async function createDraft(db: SupabaseClient, input: ListingDraftInput):
   return ok(data as unknown as Listing)
 }
 
+const IDENTITY_FIELDS = ['vin', 'make_id', 'model_id', 'make_other', 'model_other', 'year'] as const
+const conflict = (): Result<never, AppError> => err({ code: 'VERSION_CONFLICT', message: 'This listing changed. Reload and try again.' })
+
 /**
- * Update a draft (or a rejected/expired listing). `version` must match (BR-L10) but is not
- * incremented: versions change only on status transitions.
+ * PATCH /api/listings/:id (docs/systems/listing-lifecycle.md → edits). `version` must match (BR-L10).
+ * - draft / rejected / expired: any field; the version doesn't change.
+ * - live, minor fields only: stays live, version++ (the DB guard bumps it).
+ * - live, VIN/make/model/year changed: `update_listing_identity` → checking, re-evaluated.
+ * - checking / in_review / sold / removed: INVALID_STATE.
  */
-export async function updateDraft(db: SupabaseClient, id: string, patch: ListingPatchInput): Promise<Result<Listing, AppError>> {
+export async function updateListing(db: SupabaseClient, id: string, patch: ListingPatchInput): Promise<Result<Listing, AppError>> {
   const parsed = ListingPatchSchema.safeParse(patch)
   if (!parsed.success) return err(validationError(parsed.error))
   const found = await ownListing(db, id)
   if (!found.ok) return found
   const { listing, shop } = found.value
   if (shop.status === 'suspended') return err({ code: 'FORBIDDEN', message: 'Your shop is suspended' })
-  if (!DRAFT_EDITABLE.includes(listing.status)) {
-    return err({ code: 'INVALID_STATE', message: `A ${listing.status.replace('_', ' ')} listing can’t be edited here` })
+  const live = listing.status === 'live'
+  if (!live && !DRAFT_EDITABLE.includes(listing.status)) {
+    return err({ code: 'INVALID_STATE', message: `A ${listing.status.replace('_', ' ')} listing can’t be edited right now` })
   }
   const { version, ...fields } = parsed.data
-  if (version !== listing.version) return err({ code: 'VERSION_CONFLICT', message: 'This listing changed. Reload and try again.' })
+  if (version !== listing.version) return conflict()
 
   const merged = { ...listing, ...fields }
   if (merged.make_id && merged.make_other) return err({ code: 'MAKE_REQUIRED', message: 'Choose a make or enter one, not both' })
   if (merged.model_id && merged.model_other) return err({ code: 'MODEL_REQUIRED', message: 'Choose a model or enter one, not both' })
 
+  const changed = Object.fromEntries(
+    Object.entries(fields).filter(([k, v]) => listing[k as keyof Listing] !== v),
+  ) as Partial<Listing>
+  if (Object.keys(changed).length === 0) return ok(listing)
+
+  if (live && IDENTITY_FIELDS.some((k) => k in changed)) {
+    const { error } = await db.rpc('update_listing_identity', { p_listing_id: id, p_version: version, p_fields: changed })
+    if (error) {
+      if (error.message === 'VERSION_CONFLICT') return conflict()
+      if (error.message === 'INVALID_STATE') return err({ code: 'INVALID_STATE', message: 'This listing can’t be edited right now' })
+      return err(mapWriteError(error))
+    }
+    const reread = await ownListing(db, id)
+    return reread.ok ? ok(reread.value.listing) : reread
+  }
+
   const { data, error } = await db
     .from('listings')
-    .update(fields)
+    .update(changed)
     .eq('id', id)
     .eq('version', version)
     .select(LISTING_COLUMNS)
     .maybeSingle()
-  if (error) return err(mapWriteError(error))
-  if (!data) return err({ code: 'VERSION_CONFLICT', message: 'This listing changed. Reload and try again.' })
+  if (error) {
+    if (error.message === 'INVALID_STATE') return err({ code: 'INVALID_STATE', message: 'This listing can’t be edited right now' })
+    return err(mapWriteError(error))
+  }
+  if (!data) return conflict()
   return ok(data as unknown as Listing)
 }
 

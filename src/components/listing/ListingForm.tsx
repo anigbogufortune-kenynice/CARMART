@@ -33,7 +33,7 @@ export type ListingFormListing = {
 
 type Props =
   | { mode: 'create'; listing?: undefined; onSaved: (listing: { id: string; version: number }) => void }
-  | { mode: 'edit'; listing: ListingFormListing; onSaved: (listing: ListingFormListing) => void }
+  | { mode: 'edit'; listing: ListingFormListing; onSaved: (listing: ListingFormListing) => void; live?: boolean }
 
 type Ref = { id: string; name: string }
 type Field =
@@ -90,7 +90,9 @@ function toKobo(input: string): number {
   return Math.round(Number(cleaned) * 100)
 }
 
-export function ListingForm({ mode, listing, onSaved }: Props) {
+export function ListingForm(props: Props) {
+  const { mode, listing, onSaved } = props
+  const live = props.mode === 'edit' && props.live === true
   const [makes, setMakes] = useState<Ref[]>([])
   const [models, setModels] = useState<Ref[]>([])
   const [makeChoice, setMakeChoice] = useState(listing?.make_other ? OTHER : listing?.make_id ?? '')
@@ -222,6 +224,11 @@ export function ListingForm({ mode, listing, onSaved }: Props) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="mt-6 space-y-8">
+      {live && (
+        <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Changing VIN, make, model or year will re-check your listing
+        </p>
+      )}
       <fieldset className="space-y-4">
         <legend className="text-lg font-semibold">The car</legend>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -328,9 +335,9 @@ export function ListingForm({ mode, listing, onSaved }: Props) {
       </fieldset>
 
       {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
-      {saved && <p role="status" className="text-sm text-green-800">Draft saved</p>}
+      {saved && <p role="status" className="text-sm text-green-800">{live ? 'Changes saved' : 'Draft saved'}</p>}
       <button type="submit" disabled={saving} className="rounded bg-gray-900 px-4 py-2 text-white disabled:opacity-60">
-        {saving ? 'Saving…' : 'Save draft'}
+        {saving ? 'Saving…' : live ? 'Save changes' : 'Save draft'}
       </button>
     </form>
   )

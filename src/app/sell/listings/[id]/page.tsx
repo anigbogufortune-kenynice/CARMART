@@ -18,6 +18,8 @@ export const dynamic = 'force-dynamic'
 const EDITABLE = ['draft', 'rejected', 'expired']
 /** Photos can be added while the listing is editable, and to a live listing (docs/api-contracts.md). */
 const PHOTOS_EDITABLE = [...EDITABLE, 'live']
+/** Live listings are editable too: minor edits stay live, identity edits re-check (issue 023). */
+const FORM_EDITABLE = [...EDITABLE, 'live']
 const MIN_PHOTOS = 4
 
 const REQUIRED: [string, (l: OwnListing) => unknown][] = [
@@ -54,8 +56,8 @@ export default async function EditListingPage({ params }: { params: { id: string
       <ListingStatusBanner status={listing.status} statusReason={listing.status_reason} reviewFlags={listing.review_flags}
         liveAt={listing.live_at} photos={photos} />
       <ListingActions listingId={listing.id} version={listing.version} status={listing.status} blockers={blockers} />
-      {EDITABLE.includes(listing.status) ? (
-        <EditListing initial={listing} />
+      {FORM_EDITABLE.includes(listing.status) ? (
+        <EditListing initial={listing} live={listing.status === 'live'} />
       ) : (
         <p className="mt-6 rounded bg-gray-50 px-4 py-3 text-sm text-gray-800">
           This listing can’t be edited while it is {LISTING_STATUS_LABELS[listing.status].toLowerCase()}.
