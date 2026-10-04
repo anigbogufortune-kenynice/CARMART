@@ -12,6 +12,7 @@
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | YES | public | Supabase anon key (RLS applies) | `eyJ...` | `src/lib/supabase/*` |
 | `NEXT_PUBLIC_SITE_URL` | YES | public | Canonical site origin for links, OG tags and the sitemap (prod placeholder `https://carmart.example`) | `http://localhost:3000` | `sitemap.ts`, metadata, email links |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | YES | public | Support address on the Contact and Privacy pages | `support@carmart.example` | legal pages, footer |
+| `LEGAL_REVIEWED` | NO | server | `true` once a lawyer has reviewed the legal pages; until then they show “Draft — pending legal review” (issue 031) | `true` | `src/app/(legal)/legal.tsx` |
 | `LOG_LEVEL` | NO | server | `debug`, `info`, `warn` or `error` (default `info`) | `info` | `src/lib/logger.ts` |
 
 ## Job runner (`src/server/jobs/**` only; server-only, never `NEXT_PUBLIC_`)
