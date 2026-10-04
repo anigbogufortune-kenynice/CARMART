@@ -77,6 +77,16 @@ export function SellChecklist({ state, onSubmit }: { state: ChecklistState; onSu
         ))}
       </ol>
       {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
+      {state.shopStatus === 'approved' && (
+        <section className="mt-6 rounded-lg border border-[#14284B]/20 bg-[#14284B]/5 px-5 py-4">
+          <h2 className="text-lg font-semibold text-[#14284B]">Your shop is approved</h2>
+          <p className="mt-1 text-sm text-gray-700">Add your cars with at least 4 photos each. They go live once the photos pass our checks.</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/sell/listings/new" className="rounded-md bg-[#14284B] px-4 py-2 font-medium text-white hover:bg-[#0E1D38]">Add a car</Link>
+            <Link href="/sell/listings" className="rounded-md border border-[#14284B] px-4 py-2 font-medium text-[#14284B] hover:bg-white">My cars</Link>
+          </div>
+        </section>
+      )}
     </>
   )
 }
