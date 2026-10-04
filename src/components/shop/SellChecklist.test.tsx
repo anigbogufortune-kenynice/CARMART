@@ -33,6 +33,18 @@ describe('SellChecklist', () => {
     expect(screen.getByRole('button', { name: 'Resubmit' })).toBeEnabled()
   })
 
+  it('approved shop: offers Add a car and My cars', () => {
+    render(<SellChecklist state={{ hasShop: true, phoneVerified: true, shopStatus: 'approved' }} />)
+    expect(screen.getByRole('heading', { name: 'Your shop is approved' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Add a car' })).toHaveAttribute('href', '/sell/listings/new')
+    expect(screen.getByRole('link', { name: 'My cars' })).toHaveAttribute('href', '/sell/listings')
+  })
+
+  it('no Add a car before approval', () => {
+    render(<SellChecklist state={{ hasShop: true, phoneVerified: true, shopStatus: 'pending_approval' }} />)
+    expect(screen.queryByRole('link', { name: 'Add a car' })).toBeNull()
+  })
+
   it('renders step labels and done markers', () => {
     render(<SellChecklist state={{ hasShop: true, phoneVerified: false, shopStatus: 'draft' }} />)
     expect(screen.getByText('Create your shop')).toBeInTheDocument()
