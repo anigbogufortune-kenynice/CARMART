@@ -157,3 +157,34 @@ export const UploadRequestSchema = z
 export type UploadRequest = z.infer<typeof UploadRequestSchema>
 export type ImageStatus = 'uploaded' | 'checking' | 'passed' | 'rejected' | 'in_review'
 export const PhotoOrderSchema = z.object({ image_ids: z.array(z.string().uuid()).min(1).max(20) }).strict()
+
+// ── Search (docs/api-contracts.md → GET /api/listings) ─────────────────────────────────────────
+export const SEARCH_SORTS = ['newest', 'price_asc', 'price_desc', 'km_asc', 'year_desc'] as const
+export type SearchSort = (typeof SEARCH_SORTS)[number]
+export const SEARCH_PAGE_SIZE = 24
+
+/** Empty form fields ("") arrive from GET forms; treat them as absent. */
+const optional = <T extends z.ZodType>(schema: T) => z.preprocess((v) => (v === '' || v === null ? undefined : v), schema.optional())
+const count = (max: number) => z.coerce.number().int().min(0).max(max)
+
+export const SearchQuerySchema = z
+  .object({
+    q: optional(z.string().trim().min(1).max(100)),
+    make_id: optional(z.string().uuid()),
+    model_id: optional(z.string().uuid()),
+    price_min: optional(count(1_000_000_000_000)),
+    price_max: optional(count(1_000_000_000_000)),
+    year_min: optional(z.coerce.number().int().min(1900).max(2100)),
+    year_max: optional(z.coerce.number().int().min(1900).max(2100)),
+    km_max: optional(count(2_000_000)),
+    condition: optional(ConditionSchema),
+    body_type: optional(BodyTypeSchema),
+    transmission: optional(TransmissionSchema),
+    fuel: optional(FuelSchema),
+    state: optional(StateSchema),
+    city: optional(z.string().trim().min(1).max(60)),
+    sort: z.preprocess((v) => (v === '' || v === undefined ? 'newest' : v), z.enum(SEARCH_SORTS)),
+    page: z.preprocess((v) => (v === '' || v === undefined ? 1 : v), z.coerce.number().int().min(1).max(1000)),
+  })
+  .strict()
+export type SearchQuery = z.infer<typeof SearchQuerySchema>

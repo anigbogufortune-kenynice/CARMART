@@ -31,3 +31,15 @@ describe('Nigerian states', () => {
     expect(stateLabel('Kano')).toBe('Kano')
   })
 })
+
+describe('SearchQuerySchema', () => {
+  it('coerces numbers, drops empty values, and rejects unknown keys or bad values', async () => {
+    const { SearchQuerySchema } = await import('./domain')
+    expect(SearchQuerySchema.parse({ price_min: '1000000', sort: 'price_asc', page: '2', make_id: '' }))
+      .toEqual({ price_min: 1_000_000, sort: 'price_asc', page: 2 })
+    expect(SearchQuerySchema.parse({})).toEqual({ sort: 'newest', page: 1 })
+    expect(SearchQuerySchema.safeParse({ sort: 'cheapest' }).success).toBe(false)
+    expect(SearchQuerySchema.safeParse({ body_type: 'truck' }).success).toBe(false)
+    expect(SearchQuerySchema.safeParse({ foo: '1' }).success).toBe(false)
+  })
+})

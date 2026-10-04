@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { ListingStatus, NgState } from '@/types/domain'
-import { err, ok, type AppError, type Result } from '@/types/result'
+import { SEARCH_PAGE_SIZE, type ListingStatus, type NgState, type SearchQuery } from '@/types/domain'
+import { err, ok, type AppError, type Page, type Result } from '@/types/result'
 
 /**
  * Public read side of listings: the listing detail views (and search, issue 026).
@@ -151,5 +151,50 @@ export async function getListingForViewer(db: SupabaseClient, id: string): Promi
       const urls = p.status === 'passed' ? publicUrls(db, p.public_paths) : null
       return urls ? [{ id: p.id, position: p.position, urls }] : []
     }),
+  })
+}
+
+// ── Search (docs/api-contracts.md → GET /api/listings) ─────────────────────────────────────────
+
+export type ListingCard = {
+  id: string
+  title: string
+  price_cents: number | null
+  currency: string
+  year: number | null
+  odometer_km: number | null
+  condition: string | null
+  body_type: string | null
+  transmission: string | null
+  fuel: string | null
+  city: string | null
+  state: NgState | null
+  thumbnail_url: string | null
+  shop: { name: string; slug: string; verified: boolean }
+  live_at: string | null
+}
+
+type SearchRow = Omit<ListingCard, 'thumbnail_url'> & { thumbnail_path: string | null }
+
+/** Live listings of approved shops, filtered and sorted; one database call (no N+1). */
+export async function searchListings(
+  db: SupabaseClient, query: SearchQuery, opts: { shopId?: string } = {},
+): Promise<Result<Page<ListingCard>, AppError>> {
+  const { data, error } = await db.rpc('search_listings', {
+    p_q: query.q ?? null, p_make_id: query.make_id ?? null, p_model_id: query.model_id ?? null,
+    p_price_min: query.price_min ?? null, p_price_max: query.price_max ?? null,
+    p_year_min: query.year_min ?? null, p_year_max: query.year_max ?? null, p_km_max: query.km_max ?? null,
+    p_condition: query.condition ?? null, p_body_type: query.body_type ?? null, p_transmission: query.transmission ?? null,
+    p_fuel: query.fuel ?? null, p_state: query.state ?? null, p_city: query.city ?? null, p_shop_id: opts.shopId ?? null,
+    p_sort: query.sort, p_page: query.page, p_page_size: SEARCH_PAGE_SIZE,
+  })
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  const result = data as { total: number; items: SearchRow[] }
+  return ok({
+    items: result.items.map(({ thumbnail_path, ...card }) => ({
+      ...card,
+      thumbnail_url: thumbnail_path ? db.storage.from(PUBLIC_BUCKET).getPublicUrl(thumbnail_path).data.publicUrl : null,
+    })),
+    page: { number: query.page, size: SEARCH_PAGE_SIZE, total: result.total },
   })
 }
