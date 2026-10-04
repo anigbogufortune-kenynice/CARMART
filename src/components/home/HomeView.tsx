@@ -166,22 +166,6 @@ export function HomeView({ makes, latest = [] }: { makes: HomeMake[]; latest?: C
         </div>
       </section>
 
-      <footer className="bg-white">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-[1fr_2fr]">
-          <div>
-            <p style={display} className="text-lg font-semibold text-[#14284B]">CarMart</p>
-            <nav aria-label="Footer" className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[#425066]">
-              <Link href="/cars" className="hover:underline">Browse cars</Link>
-              <Link href="/sell" className="hover:underline">Sell a car</Link>
-              <Link href="/sign-in" className="hover:underline">Sign in</Link>
-            </nav>
-          </div>
-          <div className="text-sm leading-relaxed text-[#5A6578]">
-            <p>Buy safely: inspect the car and its papers in person, and only pay once you’re satisfied. CarMart never asks you to pay a deposit through the site.</p>
-            <p className="mt-3">© {new Date().getFullYear()} CarMart. Cars only, from verified Nigerian sellers.</p>
-          </div>
-        </div>
-      </footer>
     </main>
   )
 }

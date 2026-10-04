@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { listingMetadata, siteUrl } from '@/lib/seo'
 import { isUuid } from '@/lib/uuid'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { isSaved } from '@/services/saved.service'
@@ -31,7 +32,7 @@ async function load(id: string): Promise<PublicListingView | null> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const listing = await load(params.id)
-  return { title: listing ? `${listing.title} for sale | CarMart` : 'Car not found | CarMart' }
+  return listing ? listingMetadata(listing, siteUrl()) : { title: 'Car not found | CarMart', robots: { index: false } }
 }
 
 /** /cars/[id]: the public listing page. Anything not publicly visible is a 404. */

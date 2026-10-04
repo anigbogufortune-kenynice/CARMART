@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
+import { SiteFooter } from '@/components/layout/SiteFooter'
 import { SiteHeader } from '@/components/layout/SiteHeader'
+import { siteUrl } from '@/lib/seo'
 import { createServerSupabase } from '@/lib/supabase/server'
 import './globals.css'
 
@@ -8,6 +10,7 @@ const geistSans = localFont({ src: './fonts/GeistVF.woff', variable: '--font-gei
 const geistMono = localFont({ src: './fonts/GeistMonoVF.woff', variable: '--font-geist-mono', weight: '100 900' })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
   title: { default: 'CarMart: cars for sale from verified Nigerian sellers', template: '%s' },
   description: 'Buy and sell cars in Nigeria. Every seller is verified and every photo is checked.',
 }
@@ -22,6 +25,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className={`${geistSans.variable} ${geistMono.variable} bg-gray-50 text-gray-900 antialiased`}>
         <SiteHeader user={user?.email ? { email: user.email } : null} />
         {children}
+        <SiteFooter />
       </body>
     </html>
   )
