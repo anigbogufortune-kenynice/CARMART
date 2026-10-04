@@ -38,4 +38,9 @@ describe('ListingStatusBanner', () => {
     const { container } = render(<ListingStatusBanner {...base} status="draft" />)
     expect(container).toBeEmptyDOMElement()
   })
+
+  it('sold shows the sale date in Lagos time', () => {
+    render(<ListingStatusBanner {...base} status="sold" soldAt="2026-09-28T10:00:00Z" />)
+    expect(screen.getByText(/^Sold on 28 Sept? 2026. Buyers can still open it for 7 days.$/)).toBeInTheDocument()
+  })
 })

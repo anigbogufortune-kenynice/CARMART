@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { REASONS } from '@/server/jobs/image-verification/decide'
 import { processNextJobs, type Providers } from '@/server/jobs/image-verification/pipeline'
 import { VALIDATION_REASONS } from '@/server/jobs/image-verification/process-image'
+import { unpublishListing } from '@/server/jobs/image-verification/publish'
 import { FakeAiCheckProvider, FakeCarCheckProvider } from '@/server/jobs/image-verification/providers/fake.provider'
 import { completeUpload, requestUpload } from '@/services/image-upload.service'
 import { createDraft } from '@/services/listing.service'
@@ -114,6 +115,12 @@ describe('processNextJobs (fake providers)', () => {
 
     // A done job is never reprocessed.
     expect(await processNextJobs(adminDb(), 5, providers)).toEqual({ processed: 0, requeued: 0, skipped: 0 })
+
+    // Unpublishing the listing (removed / old sold, issue 024) deletes its variants and clears the paths; idempotent.
+    expect(await unpublishListing(adminDb(), listingId)).toEqual({ deleted: 3 })
+    expect((await adminDb().storage.from('listing-public').list(listingId)).data ?? []).toEqual([])
+    expect((await image(car)).public_paths).toBeNull()
+    expect(await unpublishListing(adminDb(), listingId)).toEqual({ deleted: 0 })
   })
 
   it('rejects tiny, animated and undecodable files with the D1 reasons', async () => {
