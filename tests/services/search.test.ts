@@ -90,6 +90,12 @@ describe('searchListings', () => {
     expect(brandNew.ok && brandNew.value.page.total).toBe(1)
   })
 
+  it('can be limited to one shop', async () => {
+    const shop = (await adminDb().from('shops').select('id').eq('slug', 'shop-ax').single()).data!
+    const res = await searchListings(anonDb(), { sort: 'newest', page: 1 }, { shopId: shop.id as string })
+    expect(res.ok && res.value.page.total).toBe(15)
+  })
+
   it('q uses full-text search', async () => {
     const res = await search({ q: 'turbo diesel' })
     expect(res.ok && res.value.page.total).toBe(1)

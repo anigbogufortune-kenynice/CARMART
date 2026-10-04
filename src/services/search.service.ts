@@ -177,13 +177,15 @@ export type ListingCard = {
 type SearchRow = Omit<ListingCard, 'thumbnail_url'> & { thumbnail_path: string | null }
 
 /** Live listings of approved shops, filtered and sorted; one database call (no N+1). */
-export async function searchListings(db: SupabaseClient, query: SearchQuery): Promise<Result<Page<ListingCard>, AppError>> {
+export async function searchListings(
+  db: SupabaseClient, query: SearchQuery, opts: { shopId?: string } = {},
+): Promise<Result<Page<ListingCard>, AppError>> {
   const { data, error } = await db.rpc('search_listings', {
     p_q: query.q ?? null, p_make_id: query.make_id ?? null, p_model_id: query.model_id ?? null,
     p_price_min: query.price_min ?? null, p_price_max: query.price_max ?? null,
     p_year_min: query.year_min ?? null, p_year_max: query.year_max ?? null, p_km_max: query.km_max ?? null,
     p_condition: query.condition ?? null, p_body_type: query.body_type ?? null, p_transmission: query.transmission ?? null,
-    p_fuel: query.fuel ?? null, p_state: query.state ?? null, p_city: query.city ?? null,
+    p_fuel: query.fuel ?? null, p_state: query.state ?? null, p_city: query.city ?? null, p_shop_id: opts.shopId ?? null,
     p_sort: query.sort, p_page: query.page, p_page_size: SEARCH_PAGE_SIZE,
   })
   if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })

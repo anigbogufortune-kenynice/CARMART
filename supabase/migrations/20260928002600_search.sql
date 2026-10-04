@@ -22,6 +22,7 @@ create or replace function public.search_listings(
   p_fuel public.fuel_type default null,
   p_state public.ng_state default null,
   p_city text default null,
+  p_shop_id uuid default null,
   p_sort text default 'newest',
   p_page int default 1,
   p_page_size int default 24
@@ -54,6 +55,7 @@ language sql stable security invoker set search_path = public as $$
        and (p_fuel is null or l.fuel = p_fuel)
        and (p_state is null or l.state = p_state)
        and (p_city is null or lower(l.city) = lower(btrim(p_city)))
+       and (p_shop_id is null or l.shop_id = p_shop_id)
   ),
   ranked as (
     select b.*, row_number() over (order by
@@ -74,4 +76,4 @@ language sql stable security invoker set search_path = public as $$
     ), '[]'::jsonb))
 $$;
 grant execute on function public.search_listings(text, uuid, uuid, bigint, bigint, int, int, int, public.car_condition,
-  public.body_type, public.transmission_type, public.fuel_type, public.ng_state, text, text, int, int) to anon, authenticated;
+  public.body_type, public.transmission_type, public.fuel_type, public.ng_state, text, uuid, text, int, int) to anon, authenticated;
