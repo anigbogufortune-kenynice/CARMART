@@ -28,11 +28,11 @@ As a shop owner, I want to update my live listing without taking it down unneces
 - docs/systems/image-verification.md: photos on live listings (Evaluate rules, live section)
 
 ## Acceptance Criteria
-- [ ] PATCH on live with only minor fields (colour, rego, rego_expiry, description, price_cents, odometer_km, city, postcode, state) keeps it live, and the change is visible publicly at once
-- [ ] PATCH changing vin/make/model/year on live → `update_listing_identity` RPC → checking (leaves public view), the duplicate-VIN check re-runs, version++
-- [ ] PATCH on checking/in_review/sold/removed → 409 INVALID_STATE; a stale version → 409 VERSION_CONFLICT
-- [ ] Adding a photo to a live listing keeps the listing live; the new photo is hidden until passed; deleting a photo that would leave < 4 passed → 422 PHOTO_COUNT
-- [ ] The ListingForm in live mode shows a notice: 'Changing VIN, make, model or year will re-check your listing'
+- [x] PATCH on live with only minor fields (colour, rego, rego_expiry, description, price_cents, odometer_km, city, postcode, state) keeps it live, and the change is visible publicly at once
+- [x] PATCH changing vin/make/model/year on live → `update_listing_identity` RPC → checking (leaves public view), the duplicate-VIN check re-runs, version++
+- [x] PATCH on checking/in_review/sold/removed → 409 INVALID_STATE; a stale version → 409 VERSION_CONFLICT
+- [x] Adding a photo to a live listing keeps the listing live; the new photo is hidden until passed; deleting a photo that would leave < 4 passed → 422 PHOTO_COUNT
+- [x] The ListingForm in live mode shows a notice: 'Changing VIN, make, model or year will re-check your listing'
 
 ## Files to Modify
 - supabase/migrations/20260928002300_live_edits.sql: `update_listing_identity`, and allow evaluate for live photo additions
