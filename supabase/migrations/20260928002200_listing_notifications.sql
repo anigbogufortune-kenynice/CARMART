@@ -90,5 +90,8 @@ begin
                            else expires_at end,
          version = version + 1
    where id = l.id;
-  perform enqueue_notification(v_owner, 'listing_live', l.id, jsonb_build_object('title', v_title, 'listingId', l.id));
+  -- Announce first publication (or a relaunch after expiry), not a re-check of a car that was live.
+  if l.live_at is null or l.expires_at is null or l.expires_at < now() then
+    perform enqueue_notification(v_owner, 'listing_live', l.id, jsonb_build_object('title', v_title, 'listingId', l.id));
+  end if;
 end $$;
