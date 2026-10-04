@@ -31,14 +31,14 @@
 | 021 | Submit a listing and go live automatically | 12 | ✅ merged | `feature/021-submit-listing-and-go-live` | #018, #020, #012 | — | 2026-10-04 16:20 |
 | 022 | Listing detail API (public vs owner) and listing status emails | 13 | ✅ merged | `feature/022-listing-view-api-and-emails` | #021 | — | 2026-10-04 16:20 |
 | 023 | Edit a live listing (minor vs identity changes, live photo rules) | 14 | ✅ merged | `feature/023-edit-live-listing` | #022 | — | 2026-10-04 16:20 |
-| 024 | Mark a listing sold, and unpublish removed or old sold listings | 15 | 👁 pr-open | `feature/024-mark-sold-and-unpublish` | #023 | — | 2026-10-04 16:20 |
+| 024 | Mark a listing sold, and unpublish removed or old sold listings | 15 | ✅ merged | `feature/024-mark-sold-and-unpublish` | #023 | — | 2026-10-04 16:20 |
 | 025 | Listing expiry, reminder emails and renewal | 16 | ✅ merged | `feature/025-expiry-reminders-and-renew` | #024 | — | 2026-10-04 16:20 |
 | 026 | Search service and public search API | 14 | ⏳ open | `feature/026-search-service-and-api` | #022 | — | 2026-10-04 16:20 |
 | 027 | /cars search page with filters, and the home page | 15 | ⏳ open | `feature/027-cars-search-page-and-home` | #026 | — | 2026-10-04 16:20 |
 | 028 | Public listing detail page (gallery, specs, VIN/PPSR, shop card, SOLD) | 16 | ⏳ open | `feature/028-listing-detail-page` | #027 | — | 2026-10-04 16:20 |
 | 029 | Saved cars (watchlist) | 17 | 🔒 blocked | `feature/029-saved-cars` | #028 | — | 2026-10-04 16:20 |
 | 030 | SEO metadata, sitemap, robots and site footer | 18 | 🔒 blocked | `feature/030-seo-metadata-footer` | #029 | — | 2026-10-04 16:20 |
-| 031 | Legal and trust pages | 19 | 🔒 blocked | `feature/031-legal-and-trust-pages` | #030 | — | 2026-10-04 16:20 |
+| 031 | Legal and trust pages | 19 | ⏳ open | `feature/031-legal-and-trust-pages` | #030 | — | 2026-10-04 16:20 |
 | 032 | End-to-end journeys and accessibility checks | 20 | ⏳ open | `feature/032-e2e-journeys-and-accessibility` | #031 | — | 2026-10-04 16:20 |
 | 033 | Conversations and messages: schema, rules and API | 14 | ⏳ open | `feature/033-conversations-schema-and-service` | #022 | — | 2026-10-04 16:20 |
 | 034 | 'Message seller' button and the buyer inbox | 19 | 🔒 blocked | `feature/034-message-seller-ui-and-buyer-inbox` | #033, #030 | — | 2026-10-04 16:20 |
