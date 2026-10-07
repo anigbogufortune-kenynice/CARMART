@@ -16,8 +16,8 @@ describe("listQueue(db, 'images')", { timeout: 90_000 }, () => {
   it('lists in_review photos with a signed quarantine URL and the evidence; passed photos are not in it', async () => {
     const { db } = await seller('a@x.ng')
     const listingId = await draft(db)
-    const borderline = await uploadFixture(db, listingId, 'borderline-ai.jpg')
     await uploadFixture(db, listingId, 'car-exterior.jpg')
+    const borderline = await uploadFixture(db, listingId, 'borderline-ai.jpg')
     await processNextJobs(adminDb(), 5, providers)
 
     const res = await listQueue(await adminClient(), 'images', 1)

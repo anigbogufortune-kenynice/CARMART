@@ -34,10 +34,13 @@ export async function uploadFixture(db: SupabaseClient, listingId: string, name:
   const url = new URL(req.value.upload_url)
   const path = decodeURIComponent(url.pathname.split('/object/upload/sign/listing-quarantine/')[1])
   // The CI storage container sometimes answers the first upload of a test file with a 502; retry.
-  let up = await db.storage.from('listing-quarantine').uploadToSignedUrl(path, url.searchParams.get('token')!, bytes, { contentType: mime, upsert: true })
+  const upload = () => db.storage.from('listing-quarantine')
+    .uploadToSignedUrl(path, url.searchParams.get('token')!, bytes, { contentType: mime, upsert: true })
+    .catch((e: unknown) => ({ error: e instanceof Error ? e : new Error(String(e)) }))
+  let up = await upload()
   for (let attempt = 1; up.error && attempt < 4; attempt++) {
     await new Promise((r) => setTimeout(r, 1000 * attempt))
-    up = await db.storage.from('listing-quarantine').uploadToSignedUrl(path, url.searchParams.get('token')!, bytes, { contentType: mime, upsert: true })
+    up = await upload()
   }
   if (up.error) throw new Error(up.error.message)
   const done = await completeUpload(db, listingId, req.value.image_id)
