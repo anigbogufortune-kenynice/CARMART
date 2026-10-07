@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Message } from '@/services/messaging.service'
 import { ThreadView } from './ThreadView'
@@ -58,5 +58,27 @@ describe('ThreadView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send' }))
     expect(await screen.findByText('See you then', { selector: 'p' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Your message' })).toHaveValue('')
+  })
+
+  it('blocked: shows the notice and no composer or Block action', () => {
+    render(<ThreadView conversationId="c1" currentUserId={ME} initial={MESSAGES} blocked />)
+    expect(screen.getByText('This conversation is blocked')).toBeInTheDocument()
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Block' })).toBeNull()
+  })
+
+  it('Block asks for confirmation, POSTs, then hides the composer', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+    render(<ThreadView conversationId="c1" currentUserId={ME} initial={MESSAGES} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Block' }))
+    expect(fetchMock).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Block' }))
+    await waitFor(() => expect(screen.getByText('This conversation is blocked')).toBeInTheDocument())
+    expect(fetchMock).toHaveBeenCalledWith('/api/conversations/c1/block', { method: 'POST' })
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(confirm).toHaveBeenCalledTimes(2)
+    confirm.mockRestore()
   })
 })

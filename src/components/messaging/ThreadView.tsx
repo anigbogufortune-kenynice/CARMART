@@ -12,8 +12,9 @@ type Props = { conversationId: string; currentUserId: string; initial: Message[]
 const TIME: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }
 
 /** One conversation: messages oldest→newest, mine on the right; refreshes every 10 s while open. */
-export function ThreadView({ conversationId, currentUserId, initial, blocked = false }: Props) {
+export function ThreadView({ conversationId, currentUserId, initial, blocked: initiallyBlocked = false }: Props) {
   const [messages, setMessages] = useState<Message[]>(initial)
+  const [blocked, setBlocked] = useState(initiallyBlocked)
   const [body, setBody] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,11 +49,13 @@ export function ThreadView({ conversationId, currentUserId, initial, blocked = f
     setError(null)
     try {
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: body.trim() }) })
-      const json = (await res.json()) as { data?: Message; error?: { message: string } }
+      const json = (await res.json()) as { data?: Message; error?: { code: string; message: string } }
       if (res.ok && json.data) {
         const sent = json.data
         setMessages((current) => (current.some((m) => m.id === sent.id) ? current : [...current, sent]))
         setBody('')
+      } else if (json.error?.code === 'CONVERSATION_BLOCKED') {
+        setBlocked(true)
       } else {
         setError(json.error?.message ?? 'Couldn’t send your message. Please try again.')
       }
@@ -60,6 +63,21 @@ export function ThreadView({ conversationId, currentUserId, initial, blocked = f
       setError('Couldn’t send your message. Please try again.')
     }
     setBusy(false)
+  }
+
+  async function block() {
+    if (!window.confirm('Block this conversation? Neither of you will be able to send messages in it.')) return
+    setError(null)
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/block`, { method: 'POST' })
+      if (res.ok) {
+        setBlocked(true)
+        return
+      }
+    } catch {
+      // handled below
+    }
+    setError('Couldn’t block this conversation. Please try again.')
   }
 
   return (
@@ -85,11 +103,14 @@ export function ThreadView({ conversationId, currentUserId, initial, blocked = f
       <div ref={endRef} />
       </div>
       {blocked ? (
-        <p className="rounded-md bg-[#F4EDE1] px-4 py-3 text-sm text-[#5A4520]">This conversation has been blocked.</p>
+        <p role="status" className="rounded-md bg-[#F4EDE1] px-4 py-3 text-sm text-[#5A4520]">This conversation is blocked</p>
       ) : (
         <div className="rounded-xl border border-[#E2E7EF] bg-white p-4">
           <Composer value={body} onChange={setBody} onSend={() => void send()} busy={busy} />
           {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+          <div className="mt-3 border-t border-[#E2E7EF] pt-3 text-right">
+            <button type="button" onClick={() => void block()} className="text-sm text-[#5A6578] underline hover:text-red-700">Block</button>
+          </div>
         </div>
       )}
     </div>

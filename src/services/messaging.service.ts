@@ -7,7 +7,7 @@ import { err, ok, type AppError, type Page, type Result } from '@/types/result'
  * security-definer RPCs; reads go through RLS (participants only).
  */
 
-export const MessageBodySchema = z.string().trim().min(1, 'Write a message').max(2000, 'Keep it under 2,000 characters')
+const MessageBodySchema = z.string().trim().min(1, 'Write a message').max(2000, 'Keep it under 2,000 characters')
 
 const PAGE_SIZE = 24
 const MESSAGE_PAGE = 50
@@ -28,7 +28,7 @@ const MESSAGES: Record<string, string> = {
   NOT_FOUND: 'Conversation not found',
   OWN_LISTING: 'This is your own listing',
   FORBIDDEN: 'Your account can’t send messages right now',
-  CONVERSATION_BLOCKED: 'This conversation has been blocked',
+  CONVERSATION_BLOCKED: 'This conversation is blocked',
   CONVERSATION_LIMIT: 'You’ve started the maximum number of new conversations for today. Try again tomorrow.',
   RATE_LIMITED: 'You’re sending messages too quickly. Wait a little, then try again.',
   VALIDATION_ERROR: 'Messages must be 1 to 2,000 characters',
@@ -92,6 +92,12 @@ export async function getConversation(db: SupabaseClient, conversationId: string
   const row = (data as { items: ConversationRow[] }).items[0]
   if (!row) return err({ code: 'NOT_FOUND', message: 'Conversation not found' })
   return ok(toSummary(db, row))
+}
+
+/** Block a thread (either participant). Nobody can send in it afterwards; both can still read it. */
+export async function blockConversation(db: SupabaseClient, conversationId: string): Promise<Result<null, AppError>> {
+  const { error } = await db.rpc('block_conversation', { p_conversation_id: conversationId })
+  return error ? err(rpcError(error)) : ok(null)
 }
 
 export type UnreadCount = { total: number; buyer: number; seller: number }
