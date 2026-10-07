@@ -4,8 +4,12 @@
  */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-/** App tables cleared by resetDb(), in delete order (children first). Later issues append here. */
-export const TABLES: string[] = []
+/**
+ * App tables cleared by resetDb() before users are deleted, in delete order (children first).
+ * Conversations go first: deleting a buyer and a shop owner in parallel would otherwise cascade
+ * into the same messages and deadlock.
+ */
+export const TABLES: string[] = ['conversations']
 
 export type TestUser = { id: string; email: string; password: string }
 

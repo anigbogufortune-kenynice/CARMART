@@ -23,10 +23,10 @@ As a seller, I want an email when a buyer writes, so that I don't miss them, wit
 - docs/decisions.md: ADR-010
 
 ## Acceptance Criteria
-- [ ] `send_message` enqueues `new_message` for the recipient via enqueue_notification (throttled 15 min per conversation per recipient)
-- [ ] The email shows the sender's name, car title, first 200 chars of the message, and a link to the right inbox thread
-- [ ] The 61st message by a user within an hour → 429 RATE_LIMITED
-- [ ] Messages in a blocked conversation never enqueue emails
+- [x] `send_message` enqueues `new_message` for the recipient via enqueue_notification (throttled 15 min per conversation per recipient)
+- [x] The email shows the sender's name, car title, first 200 chars of the message, and a link to the right inbox thread
+- [x] The 61st message by a user within an hour → 429 RATE_LIMITED
+- [x] Messages in a blocked conversation never enqueue emails
 
 ## Files to Modify
 - supabase/migrations/20260928003600_message_alerts.sql: `send_message` (create or replace) with enqueue + hourly limit

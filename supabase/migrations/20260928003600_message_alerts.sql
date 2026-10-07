@@ -1,9 +1,6 @@
 -- Issue 036: new-message email alerts (throttled by enqueue_notification: one per thread per
 -- recipient every 15 minutes, docs/schema.md) and the 60-messages-an-hour limit (docs/auth.md).
 
-insert into public.app_settings (key, value) values ('hourly_message_limit', '60')
-  on conflict (key) do nothing;
-
 create or replace function public.send_message(p_conversation_id uuid, p_body text) returns public.messages
 language plpgsql security definer set search_path = public as $$
 declare
@@ -20,7 +17,7 @@ begin
   if c.blocked_by is not null then raise exception 'CONVERSATION_BLOCKED' using errcode = 'P0001'; end if;
   if p_body is null or char_length(btrim(p_body)) not between 1 and 2000 then raise exception 'VALIDATION_ERROR' using errcode = 'P0001'; end if;
   if (select count(*) from messages x where x.sender_id = auth.uid() and x.created_at > now() - interval '1 hour')
-     >= coalesce(setting_num('hourly_message_limit'), 60) then
+     >= 60 then
     raise exception 'RATE_LIMITED' using errcode = 'P0001';
   end if;
 
