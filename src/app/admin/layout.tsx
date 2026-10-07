@@ -9,6 +9,7 @@ const NAV: { href: string; label: string; queue: QueueName }[] = [
   { href: '/admin/images', label: 'Photos', queue: 'images' },
   { href: '/admin/duplicate-vins', label: 'Duplicate VINs', queue: 'duplicate-vins' },
   { href: '/admin/other-make-model', label: 'Other make/model', queue: 'other-make-model' },
+  { href: '/admin/reports', label: 'Reports', queue: 'reports' },
 ]
 
 /** The admin area 404s for everyone except active admins (the area isn't advertised). */

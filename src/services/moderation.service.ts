@@ -54,6 +54,23 @@ export type ListingSummary = {
 }
 export type ListingQueueItem = ListingSummary & { others: ListingSummary[] }
 
+export type ReportQueueItem = {
+  report_id: string
+  target_type: 'listing' | 'shop' | 'conversation'
+  target_id: string
+  count: number
+  reasons: string[]
+  notes: string[]
+  first_at: string
+  latest_at: string
+  listing: { id: string; title: string; status: string; review_flags: string[]; shop_name: string } | null
+  shop: { id: string; name: string; slug: string; status: string } | null
+  conversation: {
+    id: string; listing_title: string; shop_name: string
+    messages: { id: string; sender_id: string; from_buyer: boolean; body: string; created_at: string }[]
+  } | null
+}
+
 const PAGE_SIZE = 24
 const PUBLIC_BUCKET = 'listing-public'
 const QUARANTINE_BUCKET = 'listing-quarantine'
@@ -216,6 +233,58 @@ async function flaggedQueue(
   return ok({ items, page: { number: page, size: PAGE_SIZE, total: count ?? 0 } })
 }
 
+type GroupRow = Omit<ReportQueueItem, 'listing' | 'shop' | 'conversation'>
+
+/** Open reports grouped by target (oldest first) with the reported content alongside. */
+async function reportsQueue(db: SupabaseClient, page: number): Promise<Result<Page<ReportQueueItem>, AppError>> {
+  const { data, error } = await db.rpc('admin_report_groups', { p_page: page, p_page_size: PAGE_SIZE })
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  const { total, items } = data as { total: number; items: GroupRow[] }
+  const ids = (t: GroupRow['target_type']) => items.filter((i) => i.target_type === t).map((i) => i.target_id)
+  const listingIds = ids('listing')
+  const shopIds = ids('shop')
+  const convIds = ids('conversation')
+
+  const [listings, shops, convs, msgs] = await Promise.all([
+    listingIds.length ? db.from('listings').select(LISTING_COLUMNS).in('id', listingIds) : null,
+    shopIds.length ? db.from('shops').select('id,name,slug,status').in('id', shopIds) : null,
+    convIds.length
+      ? db.from('conversations').select('id,buyer_id,shop:shops(name),listing:listings(year,make_other,model_other,make:vehicle_makes(name),model:vehicle_models(name))').in('id', convIds)
+      : null,
+    convIds.length
+      ? db.from('messages').select('id,conversation_id,sender_id,body,created_at').in('conversation_id', convIds).order('created_at', { ascending: false }).limit(20 * convIds.length)
+      : null,
+  ])
+  const failed = [listings, shops, convs, msgs].find((r) => r?.error)
+  if (failed?.error) return err({ code: 'INTERNAL_ERROR', message: failed.error.message })
+
+  const listingMap = new Map(((listings?.data ?? []) as unknown as ListingRow[]).map((l) => [l.id, l]))
+  const shopMap = new Map(((shops?.data ?? []) as { id: string; name: string; slug: string; status: string }[]).map((x) => [x.id, x]))
+  type ConvRow = { id: string; buyer_id: string; shop: { name: string } | null; listing: (Pick<ListingRow, 'year' | 'make_other' | 'model_other' | 'make' | 'model'>) | null }
+  const convMap = new Map(((convs?.data ?? []) as unknown as ConvRow[]).map((c) => [c.id, c]))
+  const msgRows = (msgs?.data ?? []) as { id: string; conversation_id: string; sender_id: string; body: string; created_at: string }[]
+
+  const result = items.map((g): ReportQueueItem => {
+    const l = g.target_type === 'listing' ? listingMap.get(g.target_id) : undefined
+    const c = g.target_type === 'conversation' ? convMap.get(g.target_id) : undefined
+    return {
+      ...g,
+      listing: l ? {
+        id: l.id, title: summarise(l, new Map()).title, status: l.status, review_flags: l.review_flags, shop_name: l.shop.name,
+      } : null,
+      shop: g.target_type === 'shop' ? shopMap.get(g.target_id) ?? null : null,
+      conversation: c ? {
+        id: c.id,
+        listing_title: c.listing ? carTitle({ id: '', status: '', ...c.listing }) : 'Untitled car',
+        shop_name: c.shop?.name ?? '',
+        messages: msgRows.filter((m) => m.conversation_id === c.id).slice(0, 20).reverse()
+          .map((m) => ({ id: m.id, sender_id: m.sender_id, from_buyer: m.sender_id === c.buyer_id, body: m.body, created_at: m.created_at })),
+      } : null,
+    }
+  })
+  return ok({ items: result, page: { number: page, size: PAGE_SIZE, total } })
+}
+
 /** How many items wait in a queue (one head-count query; no rows, no signed URLs). */
 async function queueCount(db: SupabaseClient, queue: QueueName): Promise<Result<Page<unknown>, AppError>> {
   const head = { count: 'exact' as const, head: true }
@@ -225,6 +294,11 @@ async function queueCount(db: SupabaseClient, queue: QueueName): Promise<Result<
     : queue === 'duplicate-vins' ? db.from('listings').select('id', head).eq('status', 'in_review').contains('review_flags', ['duplicate_vin'])
     : queue === 'other-make-model' ? db.from('listings').select('id', head).eq('status', 'in_review').contains('review_flags', ['other_make_model'])
     : null
+  if (queue === 'reports') {
+    const res = await db.rpc('admin_report_groups', { p_page: 1, p_page_size: 1 })
+    if (res.error) return err({ code: 'INTERNAL_ERROR', message: res.error.message })
+    return ok({ items: [], page: { number: 1, size: PAGE_SIZE, total: (res.data as { total: number }).total } })
+  }
   if (!query) return err({ code: 'NOT_FOUND', message: `Unknown queue: ${queue}` })
   const { count, error } = await query
   if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
@@ -248,6 +322,8 @@ export async function listQueue(
       return flaggedQueue(db, 'duplicate_vin', p)
     case 'other-make-model':
       return flaggedQueue(db, 'other_make_model', p)
+    case 'reports':
+      return reportsQueue(db, p)
     default:
       return err({ code: 'NOT_FOUND', message: `Unknown queue: ${queue}` })
   }
@@ -334,4 +410,18 @@ export async function decideListing(
   if (error) return err(mapDecisionError(error.message))
   const l = data as { id: string; status: string }
   return ok({ id: l.id, status: l.status })
+}
+
+export type ReportDecision = 'dismiss' | 'action'
+
+/** Close every open report on the reported target (dismissed or actioned), one audit row per report. */
+export async function decideReport(
+  db: SupabaseClient, reportId: string, decision: ReportDecision, reason: string,
+): Promise<Result<{ closed: number }, AppError>> {
+  if (!validReason(reason)) return err(DECISION_ERRORS.REASON_REQUIRED)
+  const { data, error } = await db.rpc('admin_decide_report', {
+    p_report_id: reportId, p_status: decision === 'dismiss' ? 'dismissed' : 'actioned', p_reason: reason,
+  })
+  if (error) return err(mapDecisionError(error.message))
+  return ok({ closed: data as number })
 }

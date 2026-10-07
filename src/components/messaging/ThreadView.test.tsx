@@ -81,4 +81,16 @@ describe('ThreadView', () => {
     expect(confirm).toHaveBeenCalledTimes(2)
     confirm.mockRestore()
   })
+
+  it('Report conversation opens the report dialog for this conversation', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: { id: 'r1' } }), { status: 201 }))
+    vi.stubGlobal('fetch', fetchMock)
+    render(<ThreadView conversationId="c1" currentUserId={ME} initial={MESSAGES} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Report' }))
+    expect(screen.getByRole('heading', { name: 'Report this conversation' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('radio', { name: /Scam or fraud/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Send report' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+    expect(JSON.parse(String((fetchMock.mock.calls[0] as [string, RequestInit])[1].body))).toMatchObject({ target_type: 'conversation', target_id: 'c1' })
+  })
 })

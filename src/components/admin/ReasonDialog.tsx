@@ -4,13 +4,14 @@ import { useEffect, useId, useRef, useState } from 'react'
 
 /** Modal asking for a 5–500 character reason (reject, remove, suspend…). */
 export function ReasonDialog({
-  title, confirmLabel, onConfirm, onCancel, busy = false,
+  title, confirmLabel, onConfirm, onCancel, busy = false, hint = 'The seller sees this reason. 5–500 characters.',
 }: {
   title: string
   confirmLabel: string
   onConfirm: (reason: string) => void
   onCancel: () => void
   busy?: boolean
+  hint?: string
 }) {
   const [reason, setReason] = useState('')
   const titleId = useId()
@@ -29,7 +30,7 @@ export function ReasonDialog({
         <label htmlFor={`${titleId}-reason`} className="mt-4 block text-sm font-medium">Reason</label>
         <textarea id={`${titleId}-reason`} ref={inputRef} value={reason} maxLength={500} rows={4}
           onChange={(e) => setReason(e.target.value)} className="mt-1 w-full rounded border border-gray-300 px-3 py-2" />
-        <p className="mt-1 text-xs text-gray-500">The seller sees this reason. 5–500 characters.</p>
+        <p className="mt-1 text-xs text-gray-600">{hint}</p>
         <div className="mt-4 flex justify-end gap-2">
           <button type="button" onClick={onCancel} className="rounded border border-gray-300 px-3 py-1.5">Cancel</button>
           <button type="button" disabled={!valid || busy} onClick={() => onConfirm(trimmed)}
