@@ -31,7 +31,7 @@ export function SavedList({ initial }: { initial: SavedCar[] }) {
             <div className="flex h-full flex-col justify-between rounded-xl border border-[#E2E7EF] bg-white p-4">
               <div>
                 <p className="font-semibold text-[#1B2333]">{car.title}</p>
-                <p className="mt-1 text-sm text-[#8A94A6]">No longer available</p>
+                <p className="mt-1 text-sm text-[#5A6578]">No longer available</p>
               </div>
               <button type="button" onClick={() => void remove(car.id)}
                 className="mt-4 self-start rounded-md border border-[#CBD3DF] px-3 py-1.5 text-sm font-semibold text-[#14284B]">Remove</button>
