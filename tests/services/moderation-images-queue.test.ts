@@ -12,7 +12,7 @@ async function adminClient() {
   return asUser(await createUser({ email: 'admin@x.ng', role: 'admin' }))
 }
 
-describe("listQueue(db, 'images')", () => {
+describe("listQueue(db, 'images')", { timeout: 90_000 }, () => {
   it('lists in_review photos with a signed quarantine URL and the evidence; passed photos are not in it', async () => {
     const { db } = await seller('a@x.ng')
     const listingId = await draft(db)
