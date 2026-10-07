@@ -157,10 +157,13 @@ $$;
 revoke execute on function public.my_conversations(int, int, text, uuid) from public, anon;
 grant execute on function public.my_conversations(int, int, text, uuid) to authenticated;
 
--- Unread messages for the caller across all their threads (header badge).
-create or replace function public.my_unread_count() returns int
+-- Unread messages for the caller, split by side (header badge): {"buyer": n, "seller": n}.
+create or replace function public.my_unread_count() returns jsonb
 language sql stable security definer set search_path = public as $$
-  select count(*)::int from messages x join conversations c on c.id = x.conversation_id
+  select jsonb_build_object(
+    'buyer', count(*) filter (where c.buyer_id = auth.uid()),
+    'seller', count(*) filter (where c.buyer_id <> auth.uid()))
+    from messages x join conversations c on c.id = x.conversation_id
    where x.sender_id <> auth.uid() and x.read_at is null
      and (c.buyer_id = auth.uid() or c.shop_id in (select id from shops where owner_id = auth.uid()))
 $$;

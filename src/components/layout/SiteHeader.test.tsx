@@ -25,6 +25,21 @@ describe('SiteHeader', () => {
     expect(push).toHaveBeenCalledWith('/')
   })
 
+  it('shows an unread badge linking to the inbox with unread messages', () => {
+    const { unmount } = render(<SiteHeader user={{ email: 'jo@x.ng' }} unread={{ total: 4, buyer: 0, seller: 4 }} />)
+    expect(screen.getByLabelText('4 unread messages')).toHaveTextContent('4')
+    expect(screen.getByRole('link', { name: /Messages/ })).toHaveAttribute('href', '/sell/messages')
+    unmount()
+    render(<SiteHeader user={{ email: 'jo@x.ng' }} unread={{ total: 1, buyer: 1, seller: 0 }} />)
+    expect(screen.getByRole('link', { name: /Messages/ })).toHaveAttribute('href', '/account/messages')
+  })
+
+  it('no badge when nothing is unread', () => {
+    render(<SiteHeader user={{ email: 'jo@x.ng' }} unread={{ total: 0, buyer: 0, seller: 0 }} />)
+    expect(screen.queryByLabelText(/unread messages/)).toBeNull()
+    expect(screen.getByRole('link', { name: 'Messages' })).toHaveAttribute('href', '/account/messages')
+  })
+
   it('links the brand to the home page', () => {
     render(<SiteHeader user={null} />)
     expect(screen.getByRole('link', { name: 'CarMart home' })).toHaveAttribute('href', '/')

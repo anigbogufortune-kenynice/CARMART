@@ -22,6 +22,13 @@ describe('ConversationList', () => {
     expect(links[0].querySelector('time')).toHaveAttribute('dateTime', '2026-10-01T10:05:00Z')
   })
 
+  it('seller side: shows the buyer’s display name and the car title', () => {
+    render(<ConversationList items={[{ ...base, role: 'seller', other_party: 'Jo' }]} basePath="/sell/messages" />)
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/sell/messages/c1')
+    expect(screen.getByText('Jo')).toBeInTheDocument()
+    expect(screen.getByText('2019 Toyota HiLux')).toBeInTheDocument()
+  })
+
   it('shows an empty state', () => {
     render(<ConversationList items={[]} basePath="/account/messages" empty="No messages yet." />)
     expect(screen.getByText('No messages yet.')).toBeInTheDocument()
