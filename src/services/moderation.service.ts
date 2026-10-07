@@ -258,6 +258,7 @@ const DECISION_ERRORS: Record<string, AppError> = {
   NOT_FOUND: { code: 'NOT_FOUND', message: 'Not found' },
   INVALID_STATE: { code: 'INVALID_STATE', message: 'This item has already been decided' },
   REASON_REQUIRED: { code: 'REASON_REQUIRED', message: 'Give a reason of 5–500 characters' },
+  VIN_STILL_LIVE: { code: 'VIN_STILL_LIVE', message: 'Another listing with this VIN is still live. Remove or reject it first.' },
 }
 
 function mapDecisionError(message: string): AppError {
@@ -308,4 +309,29 @@ export async function decideImage(
   if (error) return err(mapDecisionError(error.message))
   const img = data as { id: string; status: string }
   return ok({ id: img.id, status: img.status })
+}
+
+export type ReviewFlag = 'duplicate_vin' | 'other_make_model' | 'reports_threshold' | 'image_review'
+export type ListingDecision =
+  | { action: 'clear-flag'; flag: ReviewFlag; reason?: string }
+  | { action: 'reject'; reason: string }
+  | { action: 'remove'; reason: string }
+
+const validReason = (r: string | undefined) => !!r && r.trim().length >= 5 && r.trim().length <= 500
+
+/**
+ * Resolve a listing: clear one review flag (then re-evaluate), reject a held listing, or remove
+ * any listing (terminal; photos unpublished, seller emailed). Audit rows are written in SQL.
+ */
+export async function decideListing(
+  db: SupabaseClient, listingId: string, decision: ListingDecision,
+): Promise<Result<{ id: string; status: string }, AppError>> {
+  if (decision.action !== 'clear-flag' && !validReason(decision.reason)) return err(DECISION_ERRORS.REASON_REQUIRED)
+  const { data, error } =
+    decision.action === 'clear-flag'
+      ? await db.rpc('admin_clear_listing_flag', { p_listing_id: listingId, p_flag: decision.flag, p_reason: decision.reason ?? null })
+      : await db.rpc(decision.action === 'reject' ? 'admin_reject_listing' : 'admin_remove_listing', { p_listing_id: listingId, p_reason: decision.reason })
+  if (error) return err(mapDecisionError(error.message))
+  const l = data as { id: string; status: string }
+  return ok({ id: l.id, status: l.status })
 }

@@ -3,6 +3,7 @@ import { SaveButton } from '@/components/listing/SaveButton'
 import { ShowPhoneButton } from '@/components/listing/ShowPhoneButton'
 import { MessageSellerButton } from '@/components/messaging/MessageSellerButton'
 import { SpecTable } from '@/components/listing/SpecTable'
+import { RemoveListingDialog } from '@/components/admin/RemoveListingDialog'
 import { ShopCard } from '@/components/shop/ShopCard'
 import { formatDate, formatNaira } from '@/lib/format'
 import type { PublicListingView } from '@/services/search.service'
@@ -10,10 +11,10 @@ import { CONDITION_LABELS } from '@/types/domain'
 
 const placeholder = 'w-full rounded-md px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60'
 
-type Props = { listing: PublicListingView; signedIn?: boolean; saved?: boolean; isOwner?: boolean; phoneAvailable?: boolean }
+type Props = { listing: PublicListingView; signedIn?: boolean; saved?: boolean; isOwner?: boolean; phoneAvailable?: boolean; isAdmin?: boolean }
 
 /** Public listing page body (server-rendered; gallery, save and message are the client parts). */
-export function ListingDetail({ listing, signedIn = false, saved = false, isOwner = false, phoneAvailable = false }: Props) {
+export function ListingDetail({ listing, signedIn = false, saved = false, isOwner = false, phoneAvailable = false, isAdmin = false }: Props) {
   const sold = listing.status === 'sold'
   const condition = listing.condition && listing.condition in CONDITION_LABELS
     ? CONDITION_LABELS[listing.condition as keyof typeof CONDITION_LABELS] : null
@@ -54,6 +55,12 @@ export function ListingDetail({ listing, signedIn = false, saved = false, isOwne
                 </div>
               )}
             </div>
+            {isAdmin && (
+              <div className="rounded-xl border border-red-200 bg-red-50/40 p-5">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-red-900">Admin</h2>
+                <RemoveListingDialog listingId={listing.id} title={listing.title} />
+              </div>
+            )}
             <ShopCard shop={listing.shop} />
             <div className="rounded-xl border border-[#E2E7EF] bg-white p-5">
               <h2 className="text-lg font-semibold text-[#14284B]">Specs</h2>

@@ -71,4 +71,18 @@ describe('email templates', () => {
     expect(r.ok && r.value.subject).toBe('New message about the 2019 Toyota HiLux')
     expect(r.ok && r.value.text).not.toContain('…')
   })
+
+  it('listing_removed gives the reason and links to the seller’s cars', () => {
+    const r = render('listing_removed', { title: '2019 Toyota HiLux', listingId: 'x', reason: 'Listing breaks our rules' })
+    expect(r.ok && r.value.subject).toBe('Your 2019 Toyota HiLux was removed from CarMart')
+    expect(r.ok && r.value.text).toContain('Reason: Listing breaks our rules')
+    expect(r.ok && r.value.text).toContain('https://carmart.example/sell/listings')
+  })
+
+  it('listing_rejected by an admin shows the reason instead of photo lines', () => {
+    const r = render('listing_rejected', { title: '2019 Toyota HiLux', listingId: 'x', reason: 'VIN belongs to another car', photos: [] })
+    expect(r.ok && r.value.subject).toBe('Your 2019 Toyota HiLux needs changes')
+    expect(r.ok && r.value.text).toContain('Reason: VIN belongs to another car')
+    expect(r.ok && r.value.text).not.toContain('photos didn’t pass')
+  })
 })

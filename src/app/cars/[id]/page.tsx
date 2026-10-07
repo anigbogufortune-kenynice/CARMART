@@ -4,6 +4,7 @@ import { listingMetadata, siteUrl } from '@/lib/seo'
 import { isUuid } from '@/lib/uuid'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { getShopPhone } from '@/services/messaging.service'
+import { getMe } from '@/services/profile.service'
 import { isSaved } from '@/services/saved.service'
 import { getListingForViewer, type ListingView, type PublicListingView } from '@/services/search.service'
 import { ListingDetail } from './ListingDetail'
@@ -44,11 +45,13 @@ export default async function ListingPage({ params }: Props) {
   if (!loaded) notFound()
   const db = createServerSupabase()
   const { data: auth } = await db.auth.getUser()
-  const [saved, phone] = await Promise.all([
+  const [saved, phone, me] = await Promise.all([
     auth.user ? isSaved(db, loaded.listing.id) : Promise.resolve(false),
     loaded.listing.status === 'live' ? getShopPhone(db, loaded.listing.id) : null,
+    loaded.manages ? getMe(db) : null,
   ])
+  const isAdmin = !!me && me.ok && me.value.role === 'admin'
   // Only whether a number exists reaches the page; the number itself is fetched on click.
   const phoneAvailable = !!phone && (phone.ok || phone.error.code === 'UNAUTHENTICATED')
-  return <ListingDetail listing={loaded.listing} signedIn={!!auth.user} saved={saved} isOwner={loaded.manages} phoneAvailable={phoneAvailable} />
+  return <ListingDetail listing={loaded.listing} signedIn={!!auth.user} saved={saved} isOwner={loaded.manages && !isAdmin} phoneAvailable={phoneAvailable} isAdmin={isAdmin} />
 }

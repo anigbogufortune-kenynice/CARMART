@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import { DecisionButtons } from '@/components/admin/DecisionButtons'
 import { ListingSummaryCard } from '@/components/admin/ListingSummaryCard'
+import { RemoveListingDialog } from '@/components/admin/RemoveListingDialog'
 import { Pagination } from '@/components/search/Pagination'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { listQueue, type ListingQueueItem } from '@/services/moderation.service'
@@ -15,17 +17,25 @@ export default async function DuplicateVinsPage({ searchParams }: { searchParams
   return (
     <main>
       <h1 className="text-2xl font-semibold">Duplicate VINs</h1>
-      <p className="mt-1 text-sm text-gray-600">Compare the photos, shops and dates. Copied photos or a brand-new shop are common scam signs.</p>
+      <p className="mt-1 text-sm text-gray-600">Compare the photos, shops and dates. Copied photos or a brand-new shop are common scam signs. Clearing the flag is refused while the other listing is still live.</p>
       {!res.ok && <p role="alert" className="mt-6 rounded bg-red-50 px-4 py-3 text-sm text-red-900">Couldn’t load the queue: {res.error.message}</p>}
       {res.ok && items.length === 0 && <p className="mt-6 text-gray-600">Nothing to review.</p>}
       <ul className="mt-6 space-y-6">
         {items.map((item) => (
           <li key={item.id} className="grid gap-4 md:grid-cols-2">
-            <ListingSummaryCard listing={item} label="Held for review" />
+            <ListingSummaryCard listing={item} label="Held for review">
+              <DecisionButtons endpoint={`/api/admin/listings/${item.id}`} approveLabel="Clear flag (VIN is fine)"
+                approveAction="clear-flag" approveBody={{ flag: 'duplicate_vin' }} rejectTitle={`Reject ${item.title}`} />
+              <RemoveListingDialog listingId={item.id} title={item.title} />
+            </ListingSummaryCard>
             <div className="space-y-4">
               {item.others.length === 0
                 ? <p className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-600">The other listing with this VIN is no longer active.</p>
-                : item.others.map((o) => <ListingSummaryCard key={o.id} listing={o} label="Also using this VIN" />)}
+                : item.others.map((o) => (
+                  <ListingSummaryCard key={o.id} listing={o} label="Also using this VIN">
+                    <RemoveListingDialog listingId={o.id} title={o.title} />
+                  </ListingSummaryCard>
+                ))}
             </div>
           </li>
         ))}

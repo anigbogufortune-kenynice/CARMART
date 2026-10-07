@@ -48,6 +48,14 @@ describe('/cars/[id] listing detail', () => {
     expect(screen.getByRole('button', { name: 'Show phone' })).toBeInTheDocument()
   })
 
+  it('admins get Remove listing; others don’t', () => {
+    const { unmount } = render(<ListingDetail listing={listing} signedIn />)
+    expect(screen.queryByRole('button', { name: 'Remove listing' })).toBeNull()
+    unmount()
+    render(<ListingDetail listing={listing} signedIn isAdmin />)
+    expect(screen.getByRole('button', { name: 'Remove listing' })).toBeInTheDocument()
+  })
+
   it('sold: a SOLD banner and no contact actions', () => {
     render(<ListingDetail listing={{ ...listing, status: 'sold', sold_at: '2026-10-01T10:00:00Z' }} />)
     expect(screen.getByText('SOLD')).toBeInTheDocument()
