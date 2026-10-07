@@ -1,3 +1,4 @@
+import { expect, type APIRequestContext, type Page } from '@playwright/test'
 import { createClient } from '@supabase/supabase-js'
 import { config } from 'dotenv'
 
@@ -50,4 +51,74 @@ export async function runImageChecks(request: import('@playwright/test').APIRequ
     headers: { Authorization: `Bearer ${process.env.INTERNAL_JOB_SECRET}` }, data: {},
   })
   if (!res.ok()) throw new Error(`process-image-checks: ${res.status()} ${await res.text()}`)
+}
+
+const MAILPIT = process.env.MAILPIT_URL ?? 'http://127.0.0.1:54324'
+
+/** Poll Mailpit (local Supabase's email catcher) for the newest message to `email`. */
+export async function latestEmailText(request: APIRequestContext, email: string): Promise<string> {
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const search = await request.get(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}`)
+    const { messages } = (await search.json()) as { messages: { ID: string }[] }
+    if (messages?.length) {
+      const message = await request.get(`${MAILPIT}/api/v1/message/${messages[0].ID}`)
+      const { Text, HTML } = (await message.json()) as { Text: string; HTML: string }
+      return `${Text}\n${HTML}`
+    }
+    await new Promise((r) => setTimeout(r, 1000))
+  }
+  throw new Error(`No email for ${email} in Mailpit`)
+}
+
+/** Sign up through the UI and follow the confirmation email; ends signed in on '/'. */
+export async function signUpAndVerify(page: Page, email: string, password = 'long-enough-pass') {
+  await page.goto('/sign-up')
+  await page.getByLabel('Display name').fill('E2E Seller')
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Password').fill(password)
+  await page.getByRole('button', { name: 'Create account' }).click()
+  await expect(page.getByText('Check your email to verify your account')).toBeVisible()
+  const body = await latestEmailText(page.request, email)
+  const link = body.match(/https?:\/\/[^\s"'<>]+\/auth\/v1\/verify[^\s"'<>]+/)?.[0]?.replace(/&amp;/g, '&')
+  if (!link) throw new Error('confirmation link missing from email')
+  await page.goto(link)
+  await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'commit' })
+  return { email, password }
+}
+
+export async function signInAs(page: Page, email: string, password: string, next = '/') {
+  await page.goto(`/sign-in?next=${encodeURIComponent(next)}`)
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Password').fill(password)
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  await page.waitForURL((url) => url.pathname === next.split('?')[0], { waitUntil: 'commit' })
+}
+
+/**
+ * A live HiLux in an approved shop, created directly (photos marked passed, no files), for journeys
+ * that start from a listing. `city` makes it easy to find with the search filters.
+ */
+export async function createLiveListing(opts: { city: string; slug?: string }) {
+  const owner = await createConfirmedUser(`live-owner-${Date.now()}-${Math.round(Math.random() * 1e6)}@test.local`)
+  const admin = e2eAdmin()
+  const slug = opts.slug ?? `e2e-shop-${Date.now()}-${Math.round(Math.random() * 1e6)}`
+  const { data: shop, error: shopError } = await admin.from('shops')
+    .insert({ owner_id: owner.id, name: 'E2E Motors', slug, city: opts.city, state: 'Lagos' }).select('id').single()
+  if (shopError || !shop) throw new Error(`shop: ${shopError?.message}`)
+  await admin.from('shops').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', shop.id)
+  const { data: toyota } = await admin.from('vehicle_makes').select('id').eq('name', 'Toyota').single()
+  const { data: hilux } = await admin.from('vehicle_models').select('id').eq('make_id', toyota!.id).eq('name', 'HiLux').single()
+  const vin = `JTFST22P9${String(Date.now()).slice(-6)}${Math.floor(Math.random() * 90 + 10)}`.slice(0, 17)
+  const { data: listing, error } = await admin.from('listings').insert({
+    shop_id: shop.id, make_id: toyota!.id, model_id: hilux!.id, year: 2019, odometer_km: 84000, price_cents: 1850000000,
+    condition: 'foreign_used', body_type: 'pickup', transmission: 'automatic', fuel: 'diesel', colour: 'White', vin,
+    state: 'Lagos', city: opts.city, status: 'live', live_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+  }).select('id').single()
+  if (error || !listing) throw new Error(`listing: ${error?.message}`)
+  await admin.from('listing_images').insert([0, 1, 2, 3].map((position) => ({
+    listing_id: listing.id, shop_id: shop.id, position, quarantine_path: `${shop.id}/${listing.id}/p${position}`,
+    mime_type: 'image/jpeg', bytes: 1000, status: 'passed',
+  })))
+  return { listingId: listing.id as string, shopSlug: slug, owner }
 }
