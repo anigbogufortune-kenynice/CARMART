@@ -182,3 +182,27 @@ export async function decideShop(
   const shop = data as { id: string; status: string }
   return ok({ id: shop.id, status: shop.status })
 }
+
+export type ImageDecision = 'approve' | 'reject'
+
+/**
+ * Approve or reject a reviewed photo. Queues a forced-decision job (the runner publishes or
+ * unpublishes and re-evaluates the listing); the audit row is written in the same transaction.
+ */
+export async function decideImage(
+  db: SupabaseClient,
+  imageId: string,
+  decision: ImageDecision,
+  reason?: string,
+): Promise<Result<{ id: string; status: string }, AppError>> {
+  if (decision === 'reject' && (!reason || reason.trim().length < 5 || reason.trim().length > 500)) {
+    return err(DECISION_ERRORS.REASON_REQUIRED)
+  }
+  const { data, error } =
+    decision === 'approve'
+      ? await db.rpc('admin_approve_image', { p_image_id: imageId })
+      : await db.rpc('admin_reject_image', { p_image_id: imageId, p_reason: reason })
+  if (error) return err(mapDecisionError(error.message))
+  const img = data as { id: string; status: string }
+  return ok({ id: img.id, status: img.status })
+}
