@@ -48,7 +48,7 @@ describe('suspensions', () => {
     expect(await setSuspension(staff, 'shop', shopId, false, 'Trying to restore')).toMatchObject({ ok: false, error: { code: 'OWNER_SUSPENDED' } })
     expect(await setSuspension(staff, 'user', ownerId, false, 'Appeal accepted')).toMatchObject({ ok: true })
     expect(await status()).toEqual({ profile: 'active', shop: 'suspended' })
-    const { data: audit } = await adminDb().from('admin_actions').select('action').order('created_at')
+    const { data: audit } = await adminDb().from('admin_actions').select('action').eq('target_id', ownerId).order('created_at')
     expect(audit?.map((a) => a.action)).toEqual(['user.suspend', 'user.unsuspend'])
   })
 
