@@ -28,6 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           const total = c.ok ? c.value.page.total : 0
           return <Link key={n.href} href={n.href} className="hover:underline">{n.label}{total > 0 ? ` (${total})` : ''}</Link>
         })}
+        <Link href="/admin/settings" className="hover:underline">Settings</Link>
       </nav>
       {children}
     </div>
