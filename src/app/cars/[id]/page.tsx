@@ -24,23 +24,25 @@ function toPublic(v: ListingView): PublicListingView | null {
   }
 }
 
-async function load(id: string): Promise<PublicListingView | null> {
+async function load(id: string): Promise<{ listing: PublicListingView; manages: boolean } | null> {
   if (!isUuid(id)) return null
   const res = await getListingForViewer(createServerSupabase(), id)
-  return res.ok ? toPublic(res.value) : null
+  if (!res.ok) return null
+  const listing = toPublic(res.value)
+  return listing ? { listing, manages: res.value.view === 'owner' } : null
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const listing = await load(params.id)
-  return listing ? listingMetadata(listing, siteUrl()) : { title: 'Car not found | CarMart', robots: { index: false } }
+  const loaded = await load(params.id)
+  return loaded ? listingMetadata(loaded.listing, siteUrl()) : { title: 'Car not found | CarMart', robots: { index: false } }
 }
 
 /** /cars/[id]: the public listing page. Anything not publicly visible is a 404. */
 export default async function ListingPage({ params }: Props) {
-  const listing = await load(params.id)
-  if (!listing) notFound()
+  const loaded = await load(params.id)
+  if (!loaded) notFound()
   const db = createServerSupabase()
   const { data: auth } = await db.auth.getUser()
-  const saved = auth.user ? await isSaved(db, listing.id) : false
-  return <ListingDetail listing={listing} signedIn={!!auth.user} saved={saved} />
+  const saved = auth.user ? await isSaved(db, loaded.listing.id) : false
+  return <ListingDetail listing={loaded.listing} signedIn={!!auth.user} saved={saved} isOwner={loaded.manages} />
 }

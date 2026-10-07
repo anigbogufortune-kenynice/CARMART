@@ -24,16 +24,26 @@ describe('/cars/[id] listing detail', () => {
     expect(screen.getByText('Verified shop')).toBeInTheDocument()
   })
 
-  it('live: Save works; Message seller and Report stay disabled until they arrive', () => {
+  it('live: Message seller and Save work; Report stays disabled until it arrives', () => {
     render(<ListingDetail listing={listing} signedIn saved />)
-    expect(screen.getByRole('button', { name: 'Message seller' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Message seller' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Save' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Report' })).toBeDisabled()
+  })
+
+  it('visitors get a sign-in link; the owner sees no Message seller', () => {
+    const { unmount } = render(<ListingDetail listing={listing} />)
+    expect(screen.getByRole('link', { name: 'Message seller' })).toHaveAttribute('href', '/sign-in?next=%2Fcars%2Fl1')
+    unmount()
+    render(<ListingDetail listing={listing} signedIn isOwner />)
+    expect(screen.queryByRole('button', { name: 'Message seller' })).toBeNull()
+    expect(screen.getByText('This is your listing.')).toBeInTheDocument()
   })
 
   it('sold: a SOLD banner and no contact actions', () => {
     render(<ListingDetail listing={{ ...listing, status: 'sold', sold_at: '2026-10-01T10:00:00Z' }} />)
     expect(screen.getByText('SOLD')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Message seller' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Message seller' })).toBeNull()
   })
 })

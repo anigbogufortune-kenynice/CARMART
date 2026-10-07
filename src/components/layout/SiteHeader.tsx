@@ -28,6 +28,7 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
           {user ? (
             <>
               <Link href="/account/saved" className="hover:underline">Saved</Link>
+              <Link href="/account/messages" className="hover:underline">Messages</Link>
               <span className="hidden text-gray-600 md:inline">{user.email}</span>
               <button type="button" onClick={signOut} className="rounded-md border border-[#CBD3DF] px-3 py-1.5">
                 Sign out
