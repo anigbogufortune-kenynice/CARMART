@@ -26,10 +26,10 @@ As an admin, I want to see why a photo was flagged, so that I can make a quick, 
 - docs/systems/image-verification.md: Alternative path (uncertain → admin), Decision table reasons
 
 ## Acceptance Criteria
-- [ ] `listQueue(db, 'images', page)` returns in_review, non-deleted photos oldest first, each with: a signed quarantine URL (10 min), listing title + status + shop, car_check, ai_check score, metadata_signals, phash_match (with a signed URL of the matched photo), decision_reason
-- [ ] Non-admins → FORBIDDEN
-- [ ] /admin/images shows cards: the photo (click to enlarge), 'AI score 0.72 (review ≥ 0.50, reject ≥ 0.90)', 'Car: yes (0.93), exterior', 'Screen/print: no', 'EXIF: none', a side-by-side matched photo when pHash matched, and the listing link
-- [ ] The /admin dashboard shows the images queue count
+- [x] `listQueue(db, 'images', page)` returns in_review, non-deleted photos oldest first, each with: a signed quarantine URL (10 min), listing title + status + shop, car_check, ai_check score, metadata_signals, phash_match (with a signed URL of the matched photo), decision_reason
+- [x] Non-admins → FORBIDDEN
+- [x] /admin/images shows cards: the photo (click to enlarge), 'AI score 0.72 (review ≥ 0.50, reject ≥ 0.90)', 'Car: yes (0.93), exterior', 'Screen/print: no', 'EXIF: none', a side-by-side matched photo when pHash matched, and the listing link
+- [x] The /admin dashboard shows the images queue count
 
 ## Files to Modify
 - src/services/moderation.service.ts: `listQueue` images branch
