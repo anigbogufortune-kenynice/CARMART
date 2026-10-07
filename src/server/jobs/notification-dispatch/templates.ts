@@ -11,6 +11,12 @@ type Template = (p: Payload, site: string) => { subject: string; lines: string[]
 
 const str = (v: unknown) => (v === undefined || v === null ? '' : String(v))
 
+const PREVIEW_CHARS = 200
+const preview = (v: unknown) => {
+  const t = str(v).trim()
+  return t.length > PREVIEW_CHARS ? `${t.slice(0, PREVIEW_CHARS)}…` : t
+}
+
 const TEMPLATES: Record<string, Template> = {
   shop_approved: (p, site) => ({
     subject: `Your shop ${str(p.shopName)} is live on CarMart`,
@@ -58,6 +64,14 @@ const TEMPLATES: Record<string, Template> = {
         'Sold it already? Mark it as sold. Still selling? After it expires you can renew it for another 60 days.',
       ],
       link: { href: `${site}/sell/listings/${str(p.listingId)}`, label: 'Manage your listing' },
+    }
+  },
+  new_message: (p, site) => {
+    const car = p.recipientRole === 'seller' ? `your ${str(p.title)}` : `the ${str(p.title)}`
+    return {
+      subject: `New message about ${car}`,
+      lines: [`${str(p.senderName)} sent you a message about ${car}:`, `“${preview(p.preview)}”`],
+      link: { href: `${site}${str(p.path)}`, label: 'Read and reply' },
     }
   },
   listing_in_review: (p, site) => ({

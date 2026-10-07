@@ -9,6 +9,7 @@ type Props = { listingId: string; title: string; signedIn: boolean }
 
 const ERRORS: Record<string, string> = {
   CONVERSATION_LIMIT: 'You’ve started a lot of conversations today — try again tomorrow',
+  RATE_LIMITED: 'You’re sending messages too quickly. Wait a little, then try again.',
   CONVERSATION_BLOCKED: 'This seller can’t receive messages from you',
   OWN_LISTING: 'This is your own listing',
   FORBIDDEN: 'Your account can’t send messages right now',
