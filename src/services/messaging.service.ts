@@ -13,11 +13,15 @@ const PAGE_SIZE = 24
 const MESSAGE_PAGE = 50
 
 export type Message = { id: string; conversation_id: string; sender_id: string; body: string; read_at: string | null; created_at: string }
+export type ConversationRole = 'buyer' | 'seller'
 export type ConversationSummary = {
-  id: string; listing_id: string; listing_title: string; other_party: string; role: 'buyer' | 'seller'
-  unread_count: number; blocked: boolean; last_message_at: string
+  id: string; listing_id: string; listing_title: string; listing_status: string; thumbnail_url: string | null
+  other_party: string; role: ConversationRole; unread_count: number; blocked: boolean; last_message_at: string
   last_message: { body: string; created_at: string; mine: boolean } | null
 }
+type ConversationRow = Omit<ConversationSummary, 'thumbnail_url'> & { thumbnail_path: string | null }
+
+const PUBLIC_BUCKET = 'listing-public'
 
 const MESSAGES: Record<string, string> = {
   UNAUTHENTICATED: 'Sign in to message sellers',
@@ -33,6 +37,10 @@ function rpcError(error: PostgrestError, notFound = 'Conversation not found'): A
   const code = Object.keys(MESSAGES).find((c) => error.message === c)
   if (!code) return { code: 'INTERNAL_ERROR', message: error.message }
   return { code, message: code === 'NOT_FOUND' ? notFound : MESSAGES[code] }
+}
+
+function toSummary(db: SupabaseClient, { thumbnail_path, ...row }: ConversationRow): ConversationSummary {
+  return { ...row, thumbnail_url: thumbnail_path ? db.storage.from(PUBLIC_BUCKET).getPublicUrl(thumbnail_path).data.publicUrl : null }
 }
 
 function validBody(body: string): Result<string, AppError> {
@@ -60,12 +68,29 @@ export async function sendMessage(db: SupabaseClient, conversationId: string, bo
   return ok(data as Message)
 }
 
-/** The caller's threads (buyer or seller side), newest activity first, with unread counts. */
-export async function listConversations(db: SupabaseClient, page: number): Promise<Result<Page<ConversationSummary>, AppError>> {
-  const { data, error } = await db.rpc('my_conversations', { p_page: page, p_page_size: PAGE_SIZE })
+/**
+ * The caller's threads, newest activity first, with unread counts and the listing thumbnail.
+ * `role` narrows to the buyer inbox or the seller inbox; omitted, both.
+ */
+export async function listConversations(
+  db: SupabaseClient, page: number, role?: ConversationRole,
+): Promise<Result<Page<ConversationSummary>, AppError>> {
+  const { data, error } = await db.rpc('my_conversations', { p_page: page, p_page_size: PAGE_SIZE, p_role: role ?? null })
   if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
-  const result = data as { total: number; items: ConversationSummary[] }
-  return ok({ items: result.items, page: { number: page, size: PAGE_SIZE, total: result.total } })
+  const result = data as { total: number; items: ConversationRow[] }
+  return ok({
+    items: result.items.map((row) => toSummary(db, row)),
+    page: { number: page, size: PAGE_SIZE, total: result.total },
+  })
+}
+
+/** One of the caller's threads (header info for the thread page); NOT_FOUND for non-participants. */
+export async function getConversation(db: SupabaseClient, conversationId: string): Promise<Result<ConversationSummary, AppError>> {
+  const { data, error } = await db.rpc('my_conversations', { p_page: 1, p_page_size: 1, p_conversation_id: conversationId })
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  const row = (data as { items: ConversationRow[] }).items[0]
+  if (!row) return err({ code: 'NOT_FOUND', message: 'Conversation not found' })
+  return ok(toSummary(db, row))
 }
 
 /**

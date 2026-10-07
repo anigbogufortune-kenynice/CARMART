@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { listConversations, listMessages, sendMessage, startConversation } from '@/services/messaging.service'
+import { getConversation, listConversations, listMessages, sendMessage, startConversation } from '@/services/messaging.service'
 import { submitListing } from '@/services/listing-lifecycle.service'
 import { adminDb, asUser, createUser, resetDb } from '../helpers/supabase-test'
 import { completeDraft, ownerWithShop } from '../helpers/listing-fixtures'
@@ -84,5 +84,30 @@ describe('listConversations / listMessages', () => {
 
     const buyerView = await listConversations(buyer, 1)
     expect(buyerView.ok && buyerView.value.items[0]).toMatchObject({ role: 'buyer', other_party: 'Coastal Cars', unread_count: 0 })
+  })
+
+  it('role narrows to the buyer or seller inbox', async () => {
+    const { owner, id } = await liveListing()
+    const buyer = await asUser(await createUser({ email: 'buyer2@x.ng', displayName: 'Bola' }))
+    const started = await startConversation(buyer, id, 'hello')
+    if (!started.ok) throw new Error('start')
+    const [asSeller, asBuyer, buyerInbox] = await Promise.all([
+      listConversations(owner, 1, 'seller'), listConversations(owner, 1, 'buyer'), listConversations(buyer, 1, 'buyer'),
+    ])
+    expect(asSeller.ok && asSeller.value.page.total).toBe(1)
+    expect(asBuyer.ok && asBuyer.value.page.total).toBe(0)
+    expect(buyerInbox.ok && buyerInbox.value.items[0]).toMatchObject({ role: 'buyer', listing_status: 'live', thumbnail_url: null })
+  })
+
+  it('getConversation returns one thread to its participants only', async () => {
+    const { owner, id } = await liveListing()
+    const buyer = await asUser(await createUser({ email: 'buyer3@x.ng', displayName: 'Chidi' }))
+    const stranger = await asUser(await createUser({ email: 'stranger@x.ng' }))
+    const started = await startConversation(buyer, id, 'hello')
+    if (!started.ok) throw new Error('start')
+    const cid = started.value.conversation_id
+    expect(await getConversation(buyer, cid)).toMatchObject({ ok: true, value: { id: cid, other_party: 'Coastal Cars' } })
+    expect(await getConversation(owner, cid)).toMatchObject({ ok: true, value: { role: 'seller', other_party: 'Chidi' } })
+    expect(await getConversation(stranger, cid)).toMatchObject({ ok: false, error: { code: 'NOT_FOUND' } })
   })
 })

@@ -118,8 +118,10 @@ end $$;
 revoke execute on function public.mark_conversation_read(uuid) from public, anon;
 grant execute on function public.mark_conversation_read(uuid) to authenticated;
 
--- The caller's threads (as buyer or seller), newest activity first, with unread counts.
-create or replace function public.my_conversations(p_page int default 1, p_page_size int default 24) returns jsonb
+-- The caller's threads (as buyer, seller or both; or just one thread), newest activity first, with unread counts.
+create or replace function public.my_conversations(
+  p_page int default 1, p_page_size int default 24, p_role text default null, p_conversation_id uuid default null
+) returns jsonb
 language sql stable security definer set search_path = public as $$
   with mine as (
     select c.*, case when c.buyer_id = auth.uid() then 'buyer' else 'seller' end as role
@@ -127,18 +129,22 @@ language sql stable security definer set search_path = public as $$
      where c.buyer_id = auth.uid() or c.shop_id in (select id from shops where owner_id = auth.uid())
   ),
   rows as (
-    select m.id, m.listing_id, m.role, m.last_message_at, m.blocked_by is not null as blocked,
+    select m.id, m.listing_id, m.role, m.last_message_at, m.blocked_by is not null as blocked, l.status as listing_status,
            coalesce(nullif(concat_ws(' ', l.year::text, coalesce(l.make_other, mk.name), coalesce(l.model_other, md.name)), ''), 'Untitled car') as listing_title,
            case when m.role = 'buyer' then s.name else p.display_name end as other_party,
            (select count(*) from messages x where x.conversation_id = m.id and x.sender_id <> auth.uid() and x.read_at is null) as unread_count,
            (select jsonb_build_object('body', left(x.body, 140), 'created_at', x.created_at, 'mine', x.sender_id = auth.uid())
-              from messages x where x.conversation_id = m.id order by x.created_at desc limit 1) as last_message
+              from messages x where x.conversation_id = m.id order by x.created_at desc limit 1) as last_message,
+           (select i.public_paths ->> 'sm' from listing_images i
+             where i.listing_id = l.id and i.status = 'passed' and i.deleted_at is null and i.public_paths is not null
+             order by i.position limit 1) as thumbnail_path
       from mine m
       join listings l on l.id = m.listing_id
       join shops s on s.id = m.shop_id
       join profiles p on p.id = m.buyer_id
       left join vehicle_makes mk on mk.id = l.make_id
       left join vehicle_models md on md.id = l.model_id
+     where (p_role is null or m.role = p_role) and (p_conversation_id is null or m.id = p_conversation_id)
   )
   select jsonb_build_object(
     'total', (select count(*) from rows),
@@ -148,5 +154,15 @@ language sql stable security definer set search_path = public as $$
                offset (greatest(p_page, 1) - 1) * p_page_size limit p_page_size) r
     ), '[]'::jsonb))
 $$;
-revoke execute on function public.my_conversations(int, int) from public, anon;
-grant execute on function public.my_conversations(int, int) to authenticated;
+revoke execute on function public.my_conversations(int, int, text, uuid) from public, anon;
+grant execute on function public.my_conversations(int, int, text, uuid) to authenticated;
+
+-- Unread messages for the caller across all their threads (header badge).
+create or replace function public.my_unread_count() returns int
+language sql stable security definer set search_path = public as $$
+  select count(*)::int from messages x join conversations c on c.id = x.conversation_id
+   where x.sender_id <> auth.uid() and x.read_at is null
+     and (c.buyer_id = auth.uid() or c.shop_id in (select id from shops where owner_id = auth.uid()))
+$$;
+revoke execute on function public.my_unread_count() from public, anon;
+grant execute on function public.my_unread_count() to authenticated;
