@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { DecisionButtons } from '@/components/admin/DecisionButtons'
 import { ImageEvidence } from '@/components/admin/ImageEvidence'
 import { Pagination } from '@/components/search/Pagination'
 import { createServerSupabase } from '@/lib/supabase/server'
@@ -19,7 +20,13 @@ export default async function AdminImagesPage({ searchParams }: { searchParams: 
       {!res.ok && <p role="alert" className="mt-6 rounded bg-red-50 px-4 py-3 text-sm text-red-900">Couldn’t load the queue: {res.error.message}</p>}
       {res.ok && items.length === 0 && <p className="mt-6 text-gray-600">Nothing to review.</p>}
       <ul className="mt-6 grid gap-4 lg:grid-cols-2">
-        {items.map((item) => <li key={item.id}><ImageEvidence item={item} /></li>)}
+        {items.map((item) => (
+          <li key={item.id}>
+            <ImageEvidence item={item}>
+              <DecisionButtons endpoint={`/api/admin/images/${item.id}`} approveLabel="Approve photo" rejectTitle={`Reject photo ${item.position + 1}`} />
+            </ImageEvidence>
+          </li>
+        ))}
       </ul>
       {res.ok && <Pagination page={page} size={res.value.page.size} total={res.value.page.total} params={{}} basePath="/admin/images" />}
     </main>
