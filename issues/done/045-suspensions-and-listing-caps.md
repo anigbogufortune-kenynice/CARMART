@@ -27,12 +27,12 @@ As an admin, I want to stop a scammer instantly, and give good dealers more room
 - docs/systems/listing-lifecycle.md: EC-L5 (suspended shop's listings hidden, restored on unsuspend)
 
 ## Acceptance Criteria
-- [ ] `setSuspension('shop', id, true, reason)` → the shop is suspended from draft/pending/approved; its listings disappear publicly (RLS) without changing listing states
-- [ ] `setSuspension('shop', id, false, reason)` → approved; refused with 409 OWNER_SUSPENDED if the owner profile is suspended
-- [ ] `setSuspension('user', id, true, reason)` → profile suspended AND their shop suspended (BR-S7); the user is locked out (middleware from 005); unsuspending the user doesn't unsuspend the shop
-- [ ] `setListingCap(shopId, cap 1–1000, reason)`
-- [ ] All actions write audit rows; a reason is required (5–500)
-- [ ] /admin/shops gets a search box (name/slug) listing all shops with Suspend/Unsuspend and 'Listing cap' controls
+- [x] `setSuspension('shop', id, true, reason)` → the shop is suspended from draft/pending/approved; its listings disappear publicly (RLS) without changing listing states
+- [x] `setSuspension('shop', id, false, reason)` → approved; refused with 409 OWNER_SUSPENDED if the owner profile is suspended
+- [x] `setSuspension('user', id, true, reason)` → profile suspended AND their shop suspended (BR-S7); the user is locked out (middleware from 005); unsuspending the user doesn't unsuspend the shop
+- [x] `setListingCap(shopId, cap 1–1000, reason)`
+- [x] All actions write audit rows; a reason is required (5–500)
+- [x] /admin/shops gets a search box (name/slug) listing all shops with Suspend/Unsuspend and 'Listing cap' controls
 
 ## Files to Modify
 - supabase/migrations/20260928004500_suspensions_caps.sql
