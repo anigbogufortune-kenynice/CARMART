@@ -480,3 +480,47 @@ export async function setListingCap(
   const row = data as { id: string; listing_cap: number }
   return ok({ id: row.id, listing_cap: row.listing_cap })
 }
+
+export type AuditEntry = {
+  id: string; action: string; target_type: string; target_id: string; reason: string | null
+  details: Record<string, unknown>; created_at: string; actor_id: string; actor_name: string
+  /** A readable name for shop and listing targets (null for others or when the target is gone). */
+  target_label: string | null
+}
+
+const AUDIT_PAGE_SIZE = 50
+
+/** The audit log, newest first (50 per page), optionally for one target type and/or target id. */
+export async function listAuditLog(
+  db: SupabaseClient, opts: { page?: number; target_type?: string; target_id?: string },
+): Promise<Result<Page<AuditEntry>, AppError>> {
+  const denied = await requireAdmin(db)
+  if (denied) return err(denied)
+  const page = Math.max(1, Math.floor(opts.page ?? 1))
+  const from = (page - 1) * AUDIT_PAGE_SIZE
+  let query = db.from('admin_actions').select('id,action,target_type,target_id,reason,details,created_at,actor_id', { count: 'exact' })
+    .order('created_at', { ascending: false }).range(from, from + AUDIT_PAGE_SIZE - 1)
+  if (opts.target_type) query = query.eq('target_type', opts.target_type)
+  if (opts.target_id) query = query.eq('target_id', opts.target_id)
+  const { data, error, count } = await query
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  const rows = (data ?? []) as Omit<AuditEntry, 'actor_name' | 'target_label'>[]
+
+  const uuids = (type: string) => Array.from(new Set(rows.filter((r) => r.target_type === type).map((r) => r.target_id)))
+    .filter((id) => /^[0-9a-f-]{36}$/i.test(id))
+  const actorIds = Array.from(new Set(rows.map((r) => r.actor_id)))
+  const [actors, shops, listings] = await Promise.all([
+    actorIds.length ? db.from('profiles').select('id,display_name').in('id', actorIds) : null,
+    uuids('shop').length ? db.from('shops').select('id,name').in('id', uuids('shop')) : null,
+    uuids('listing').length ? db.from('listings').select(LISTING_COLUMNS).in('id', uuids('listing')) : null,
+  ])
+  const actorName = new Map(((actors?.data ?? []) as { id: string; display_name: string }[]).map((a) => [a.id, a.display_name]))
+  const labels = new Map<string, string>([
+    ...((shops?.data ?? []) as { id: string; name: string }[]).map((x): [string, string] => [`shop:${x.id}`, x.name]),
+    ...((listings?.data ?? []) as unknown as ListingRow[]).map((l): [string, string] => [`listing:${l.id}`, summarise(l, new Map()).title]),
+  ])
+  const items = rows.map((r) => ({
+    ...r, actor_name: actorName.get(r.actor_id) ?? 'Former admin', target_label: labels.get(`${r.target_type}:${r.target_id}`) ?? null,
+  }))
+  return ok({ items, page: { number: page, size: AUDIT_PAGE_SIZE, total: count ?? 0 } })
+}
