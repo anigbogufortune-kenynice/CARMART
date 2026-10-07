@@ -24,11 +24,11 @@ describe('/cars/[id] listing detail', () => {
     expect(screen.getByText('Verified shop')).toBeInTheDocument()
   })
 
-  it('live: Message seller and Save work; Report stays disabled until it arrives', () => {
+  it('live: Message seller, Save and Report work', () => {
     render(<ListingDetail listing={listing} signedIn saved />)
     expect(screen.getByRole('button', { name: 'Message seller' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Save' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Report' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Report' })).toBeEnabled()
   })
 
   it('visitors get a sign-in link; the owner sees no Message seller', () => {

@@ -25,11 +25,11 @@ As a buyer, I want to flag a suspicious car, so that CarMart can act quickly.
 - docs/systems/listing-lifecycle.md: transition report_threshold (live → in_review, flag reports_threshold), EC-L10
 
 ## Acceptance Criteria
-- [ ] `create_report(target_type, target_id, reason, note)`: the target must be visible to the reporter (conversation: participant only); one open report per user per target (409 ALREADY_REPORTED); 10 per 24 h (429 REPORT_LIMIT)
-- [ ] When a live listing reaches reports_auto_hide_count (3) open reports from distinct users → in_review with flag reports_threshold (leaves search)
-- [ ] Sold listings can be reported but aren't auto-hidden
-- [ ] A 'Report' dialog (reason radio list + optional note ≤ 1000) on /cars/[id] and /shops/[slug]; visitors are asked to sign in; success → 'Thanks — our team will review this'
-- [ ] `report.service.ts` holds createReport (keeps moderation.service within 8 exports)
+- [x] `create_report(target_type, target_id, reason, note)`: the target must be visible to the reporter (conversation: participant only); one open report per user per target (409 ALREADY_REPORTED); 10 per 24 h (429 REPORT_LIMIT)
+- [x] When a live listing reaches reports_auto_hide_count (3) open reports from distinct users → in_review with flag reports_threshold (leaves search)
+- [x] Sold listings can be reported but aren't auto-hidden
+- [x] A 'Report' dialog (reason radio list + optional note ≤ 1000) on /cars/[id] and /shops/[slug]; visitors are asked to sign in; success → 'Thanks — our team will review this'
+- [x] `report.service.ts` holds createReport (keeps moderation.service within 8 exports)
 
 ## Files to Modify
 - supabase/migrations/20260928004300_reports.sql: enums, table, RLS, `create_report`
