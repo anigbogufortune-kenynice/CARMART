@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminHome() {
   const db = createServerSupabase()
-  const [shops, images] = await Promise.all([listQueue(db, 'shops', 1), listQueue(db, 'images', 1)])
+  const [shops, images] = await Promise.all([listQueue(db, 'shops', 1, { countOnly: true }), listQueue(db, 'images', 1, { countOnly: true })])
   const waiting = shops.ok ? shops.value.page.total : 0
   const photos = images.ok ? images.value.page.total : 0
   return (

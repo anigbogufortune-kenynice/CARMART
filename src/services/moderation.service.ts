@@ -39,7 +39,23 @@ export type ImageQueueItem = {
   decision_reason: string | null
 }
 
+export type ListingSummary = {
+  id: string
+  title: string
+  vin: string | null
+  make_other: string | null
+  model_other: string | null
+  status: string
+  review_flags: string[]
+  shop: { id: string; name: string; slug: string }
+  photo_url: string | null
+  submitted_at: string | null
+  live_at: string | null
+}
+export type ListingQueueItem = ListingSummary & { others: ListingSummary[] }
+
 const PAGE_SIZE = 24
+const PUBLIC_BUCKET = 'listing-public'
 const QUARANTINE_BUCKET = 'listing-quarantine'
 const SIGNED_URL_SECONDS = 600
 
@@ -135,16 +151,103 @@ async function imagesQueue(db: SupabaseClient, page: number): Promise<Result<Pag
   return ok({ items, page: { number: page, size: PAGE_SIZE, total: count ?? 0 } })
 }
 
-/** An admin review queue, oldest first. Queues other than 'shops' arrive with later issues. */
-export async function listQueue(db: SupabaseClient, queue: QueueName, page = 1): Promise<Result<Page<unknown>, AppError>> {
+const LISTING_COLUMNS =
+  'id,vin,make_other,model_other,year,status,review_flags,submitted_at,live_at,' +
+  'make:vehicle_makes(name),model:vehicle_models(name),shop:shops(id,name,slug)'
+type ListingRow = Omit<ListingSummary, 'title' | 'photo_url'> & { year: number | null; make: NameRow; model: NameRow }
+
+/** First photo per listing: the public small variant when published, else a signed quarantine URL. */
+async function firstPhotos(db: SupabaseClient, listingIds: string[]): Promise<Map<string, string | null>> {
+  if (listingIds.length === 0) return new Map()
+  const { data } = await db.from('listing_images').select('listing_id,position,quarantine_path,public_paths')
+    .in('listing_id', listingIds).is('deleted_at', null).order('position')
+  const first = new Map<string, { quarantine_path: string; public_paths: { sm?: string } | null }>()
+  for (const r of (data ?? []) as { listing_id: string; quarantine_path: string; public_paths: { sm?: string } | null }[]) {
+    if (!first.has(r.listing_id)) first.set(r.listing_id, r)
+  }
+  const unpublished = Array.from(first.values()).filter((r) => !r.public_paths?.sm).map((r) => r.quarantine_path)
+  const signed = new Map<string, string>()
+  if (unpublished.length) {
+    const res = await db.storage.from(QUARANTINE_BUCKET).createSignedUrls(unpublished, SIGNED_URL_SECONDS)
+    for (const s of res.data ?? []) if (s.path && s.signedUrl) signed.set(s.path, s.signedUrl)
+  }
+  return new Map(listingIds.map((id) => {
+    const r = first.get(id)
+    if (!r) return [id, null]
+    if (r.public_paths?.sm) return [id, db.storage.from(PUBLIC_BUCKET).getPublicUrl(r.public_paths.sm).data.publicUrl]
+    return [id, signed.get(r.quarantine_path) ?? null]
+  }))
+}
+
+function summarise(r: ListingRow, photos: Map<string, string | null>): ListingSummary {
+  const make = r.make_other ?? r.make?.name
+  const model = r.model_other ?? r.model?.name
+  return {
+    id: r.id, title: [r.year, make, model].filter(Boolean).join(' ') || 'Untitled car', vin: r.vin,
+    make_other: r.make_other, model_other: r.model_other, status: r.status, review_flags: r.review_flags, shop: r.shop,
+    photo_url: photos.get(r.id) ?? null, submitted_at: r.submitted_at, live_at: r.live_at,
+  }
+}
+
+/** Listings held in review for one flag, oldest submission first; duplicate VINs come with the other listings. */
+async function flaggedQueue(
+  db: SupabaseClient, flag: 'duplicate_vin' | 'other_make_model', page: number,
+): Promise<Result<Page<ListingQueueItem>, AppError>> {
+  const from = (page - 1) * PAGE_SIZE
+  const { data, error, count } = await db.from('listings').select(LISTING_COLUMNS, { count: 'exact' })
+    .eq('status', 'in_review').contains('review_flags', [flag])
+    .order('submitted_at', { ascending: true }).range(from, from + PAGE_SIZE - 1)
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  const rows = (data ?? []) as unknown as ListingRow[]
+
+  let others: ListingRow[] = []
+  const vins = Array.from(new Set(rows.flatMap((r) => (r.vin ? [r.vin] : []))))
+  if (flag === 'duplicate_vin' && vins.length) {
+    const res = await db.from('listings').select(LISTING_COLUMNS).in('vin', vins)
+      .in('status', ['checking', 'in_review', 'live']).order('submitted_at', { ascending: true })
+    if (res.error) return err({ code: 'INTERNAL_ERROR', message: res.error.message })
+    others = (res.data ?? []) as unknown as ListingRow[]
+  }
+  const photos = await firstPhotos(db, Array.from(new Set([...rows, ...others].map((r) => r.id))))
+  const items = rows.map((r) => ({
+    ...summarise(r, photos),
+    others: others.filter((o) => o.vin === r.vin && o.id !== r.id).map((o) => summarise(o, photos)),
+  }))
+  return ok({ items, page: { number: page, size: PAGE_SIZE, total: count ?? 0 } })
+}
+
+/** How many items wait in a queue (one head-count query; no rows, no signed URLs). */
+async function queueCount(db: SupabaseClient, queue: QueueName): Promise<Result<Page<unknown>, AppError>> {
+  const head = { count: 'exact' as const, head: true }
+  const query =
+    queue === 'shops' ? db.from('shops').select('id', head).eq('status', 'pending_approval')
+    : queue === 'images' ? db.from('listing_images').select('id', head).eq('status', 'in_review').is('deleted_at', null)
+    : queue === 'duplicate-vins' ? db.from('listings').select('id', head).eq('status', 'in_review').contains('review_flags', ['duplicate_vin'])
+    : queue === 'other-make-model' ? db.from('listings').select('id', head).eq('status', 'in_review').contains('review_flags', ['other_make_model'])
+    : null
+  if (!query) return err({ code: 'NOT_FOUND', message: `Unknown queue: ${queue}` })
+  const { count, error } = await query
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  return ok({ items: [], page: { number: 1, size: PAGE_SIZE, total: count ?? 0 } })
+}
+
+/** An admin review queue, oldest first. `countOnly` returns just page.total (dashboard, nav badges). */
+export async function listQueue(
+  db: SupabaseClient, queue: QueueName, page = 1, opts: { countOnly?: boolean } = {},
+): Promise<Result<Page<unknown>, AppError>> {
   const denied = await requireAdmin(db)
   if (denied) return err(denied)
+  if (opts.countOnly) return queueCount(db, queue)
   const p = Math.max(1, Math.floor(page))
   switch (queue) {
     case 'shops':
       return shopsQueue(db, p)
     case 'images':
       return imagesQueue(db, p)
+    case 'duplicate-vins':
+      return flaggedQueue(db, 'duplicate_vin', p)
+    case 'other-make-model':
+      return flaggedQueue(db, 'other_make_model', p)
     default:
       return err({ code: 'NOT_FOUND', message: `Unknown queue: ${queue}` })
   }
