@@ -93,6 +93,16 @@ export async function getConversation(db: SupabaseClient, conversationId: string
   return ok(toSummary(db, row))
 }
 
+export type UnreadCount = { total: number; buyer: number; seller: number }
+
+/** Unread incoming messages across the caller's threads, split by side (one query; header badge). */
+export async function unreadCount(db: SupabaseClient): Promise<Result<UnreadCount, AppError>> {
+  const { data, error } = await db.rpc('my_unread_count')
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  const { buyer, seller } = data as { buyer: number; seller: number }
+  return ok({ total: buyer + seller, buyer, seller })
+}
+
 /**
  * A thread's messages, oldest first: the latest 50, or the 50 before `before`. Marks the other
  * party's messages as read.

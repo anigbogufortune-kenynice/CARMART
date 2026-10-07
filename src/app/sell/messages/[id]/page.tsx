@@ -4,7 +4,7 @@ import { ConversationScreen } from '@/components/messaging/ConversationScreen'
 export const metadata: Metadata = { title: 'Conversation | CarMart', robots: { index: false } }
 export const dynamic = 'force-dynamic'
 
-/** /account/messages/[id]: one thread, buyer side. */
+/** /sell/messages/[id]: one thread, seller side. */
 export default function ConversationPage({ params }: { params: { id: string } }) {
-  return <ConversationScreen id={params.id} side="buyer" />
+  return <ConversationScreen id={params.id} side="seller" />
 }

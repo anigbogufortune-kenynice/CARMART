@@ -4,10 +4,13 @@ import '@fontsource-variable/archivo/wdth.css'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createBrowserSupabase } from '@/lib/supabase/client'
+import type { UnreadCount } from '@/services/messaging.service'
 
 export type HeaderUser = { email: string } | null
 
-export function SiteHeader({ user }: { user: HeaderUser }) {
+const NO_UNREAD: UnreadCount = { total: 0, buyer: 0, seller: 0 }
+
+export function SiteHeader({ user, unread = NO_UNREAD }: { user: HeaderUser; unread?: UnreadCount }) {
   const router = useRouter()
 
   async function signOut() {
@@ -28,7 +31,15 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
           {user ? (
             <>
               <Link href="/account/saved" className="hover:underline">Saved</Link>
-              <Link href="/account/messages" className="hover:underline">Messages</Link>
+              <Link href={unread.seller > 0 ? '/sell/messages' : '/account/messages'} className="inline-flex items-center gap-1.5 hover:underline">
+                Messages
+                {unread.total > 0 && (
+                  <span aria-label={`${unread.total} unread messages`}
+                    className="min-w-[1.25rem] rounded-full bg-[#B8924F] px-1.5 text-center text-xs font-semibold leading-5 text-white">
+                    {unread.total > 99 ? '99+' : unread.total}
+                  </span>
+                )}
+              </Link>
               <span className="hidden text-gray-600 md:inline">{user.email}</span>
               <button type="button" onClick={signOut} className="rounded-md border border-[#CBD3DF] px-3 py-1.5">
                 Sign out

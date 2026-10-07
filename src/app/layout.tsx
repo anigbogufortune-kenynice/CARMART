@@ -4,6 +4,7 @@ import { SiteFooter } from '@/components/layout/SiteFooter'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { siteUrl } from '@/lib/seo'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { unreadCount, type UnreadCount } from '@/services/messaging.service'
 import './globals.css'
 
 const geistSans = localFont({ src: './fonts/GeistVF.woff', variable: '--font-geist-sans', weight: '100 900' })
@@ -16,14 +17,16 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const db = createServerSupabase()
   const {
     data: { user },
-  } = await createServerSupabase().auth.getUser()
+  } = await db.auth.getUser()
+  const unread: UnreadCount | undefined = user ? await unreadCount(db).then((r) => (r.ok ? r.value : undefined)) : undefined
 
   return (
     <html lang="en-NG">
       <body className={`${geistSans.variable} ${geistMono.variable} bg-gray-50 text-gray-900 antialiased`}>
-        <SiteHeader user={user?.email ? { email: user.email } : null} />
+        <SiteHeader user={user?.email ? { email: user.email } : null} unread={unread} />
         {children}
         <SiteFooter />
       </body>
