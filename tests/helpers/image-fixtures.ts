@@ -5,7 +5,7 @@ import { FakeAiCheckProvider, FakeCarCheckProvider } from '@/server/jobs/image-v
 import { completeUpload, requestUpload } from '@/services/image-upload.service'
 import { createDraft } from '@/services/listing.service'
 import { createShop } from '@/services/shop.service'
-import { asUser, createUser } from './supabase-test'
+import { adminDb, asUser, createUser } from './supabase-test'
 
 /** Image-pipeline test fixtures: fake vendors keyed by tests/fixtures/images/manifest.json. */
 export const providers: Providers = { car: new FakeCarCheckProvider({ strict: true }), ai: new FakeAiCheckProvider({ strict: true }) }
@@ -23,6 +23,18 @@ export async function draft(db: SupabaseClient) {
   const d = await createDraft(db, {})
   if (!d.ok) throw new Error(d.error.message)
   return d.value.id
+}
+
+/**
+ * The CI storage container can answer the first requests of a test file with a 502 ("invalid
+ * response from the upstream server"). Call in beforeAll: waits until storage answers.
+ */
+export async function warmStorage(): Promise<void> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const res = await adminDb().storage.from('listing-quarantine').list('', { limit: 1 }).catch(() => ({ error: new Error('down') }))
+    if (!res.error) return
+    await new Promise((r) => setTimeout(r, 1500))
+  }
 }
 
 /** Upload a fixture through the real upload service and confirm it (→ one queued job). */

@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { processNextJobs } from '@/server/jobs/image-verification/pipeline'
 import { listQueue, type ImageQueueItem } from '@/services/moderation.service'
-import { draft, providers, seller, uploadFixture } from '../helpers/image-fixtures'
+import { draft, providers, seller, uploadFixture, warmStorage } from '../helpers/image-fixtures'
 import { adminDb, asUser, createUser, resetDb } from '../helpers/supabase-test'
+
+beforeAll(warmStorage, 30_000)
 
 afterEach(async () => {
   await resetDb()
