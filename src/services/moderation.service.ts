@@ -7,7 +7,8 @@ import { err, ok, type AppError, type Result } from '@/types/result'
  * setListingCap, listAuditLog (added by their issues).
  */
 
-export type QueueName = 'shops' | 'images' | 'duplicate-vins' | 'other-make-model' | 'reports'
+/** Review queues, plus 'all-shops' (every shop, searchable with `q`, for suspensions and caps). */
+export type QueueName = 'shops' | 'images' | 'duplicate-vins' | 'other-make-model' | 'reports' | 'all-shops'
 export type Page<T> = { items: T[]; page: { number: number; size: number; total: number } }
 
 export type ShopQueueItem = {
@@ -19,6 +20,11 @@ export type ShopQueueItem = {
   submitted_at: string
   owner_name: string
   phone_verified: boolean
+}
+
+export type ShopAdminItem = {
+  id: string; name: string; slug: string; city: string; state: string; status: string; status_reason: string | null
+  listing_cap: number; owner_id: string; owner_name: string; owner_status: string
 }
 
 export type ImageQueueItem = {
@@ -285,6 +291,23 @@ async function reportsQueue(db: SupabaseClient, page: number): Promise<Result<Pa
   return ok({ items: result, page: { number: page, size: PAGE_SIZE, total } })
 }
 
+/** Every shop, newest first, optionally filtered by name or slug. */
+async function allShops(db: SupabaseClient, page: number, q?: string): Promise<Result<Page<ShopAdminItem>, AppError>> {
+  const from = (page - 1) * PAGE_SIZE
+  let query = db.from('shops')
+    .select('id,name,slug,city,state,status,status_reason,listing_cap,owner_id,owner:profiles!shops_owner_id_fkey(display_name,status)', { count: 'exact' })
+    .order('created_at', { ascending: false }).range(from, from + PAGE_SIZE - 1)
+  const term = q?.trim().replace(/[%_,()]/g, ' ').trim()
+  if (term) query = query.or(`name.ilike.%${term}%,slug.ilike.%${term}%`)
+  const { data, error, count } = await query
+  if (error) return err({ code: 'INTERNAL_ERROR', message: error.message })
+  type Row = Omit<ShopAdminItem, 'owner_name' | 'owner_status'> & { owner: { display_name: string; status: string } | null }
+  const items = ((data ?? []) as unknown as Row[]).map(({ owner, ...rest }) => ({
+    ...rest, owner_name: owner?.display_name ?? '', owner_status: owner?.status ?? 'active',
+  }))
+  return ok({ items, page: { number: page, size: PAGE_SIZE, total: count ?? 0 } })
+}
+
 /** How many items wait in a queue (one head-count query; no rows, no signed URLs). */
 async function queueCount(db: SupabaseClient, queue: QueueName): Promise<Result<Page<unknown>, AppError>> {
   const head = { count: 'exact' as const, head: true }
@@ -307,7 +330,7 @@ async function queueCount(db: SupabaseClient, queue: QueueName): Promise<Result<
 
 /** An admin review queue, oldest first. `countOnly` returns just page.total (dashboard, nav badges). */
 export async function listQueue(
-  db: SupabaseClient, queue: QueueName, page = 1, opts: { countOnly?: boolean } = {},
+  db: SupabaseClient, queue: QueueName, page = 1, opts: { countOnly?: boolean; q?: string } = {},
 ): Promise<Result<Page<unknown>, AppError>> {
   const denied = await requireAdmin(db)
   if (denied) return err(denied)
@@ -324,6 +347,8 @@ export async function listQueue(
       return flaggedQueue(db, 'other_make_model', p)
     case 'reports':
       return reportsQueue(db, p)
+    case 'all-shops':
+      return allShops(db, p, opts.q)
     default:
       return err({ code: 'NOT_FOUND', message: `Unknown queue: ${queue}` })
   }
@@ -334,6 +359,8 @@ const DECISION_ERRORS: Record<string, AppError> = {
   NOT_FOUND: { code: 'NOT_FOUND', message: 'Not found' },
   INVALID_STATE: { code: 'INVALID_STATE', message: 'This item has already been decided' },
   REASON_REQUIRED: { code: 'REASON_REQUIRED', message: 'Give a reason of 5–500 characters' },
+  OWNER_SUSPENDED: { code: 'OWNER_SUSPENDED', message: 'The owner’s account is suspended. Unsuspend the user first.' },
+  VALIDATION_ERROR: { code: 'VALIDATION_ERROR', message: 'The listing cap must be between 1 and 1000' },
   VIN_STILL_LIVE: { code: 'VIN_STILL_LIVE', message: 'Another listing with this VIN is still live. Remove or reject it first.' },
 }
 
@@ -424,4 +451,32 @@ export async function decideReport(
   })
   if (error) return err(mapDecisionError(error.message))
   return ok({ closed: data as number })
+}
+
+/**
+ * Suspend or unsuspend a shop or a user. Suspending a user also suspends their shop (BR-S7);
+ * unsuspending a shop is refused while its owner is suspended (EC-S5). Listing states never change.
+ */
+export async function setSuspension(
+  db: SupabaseClient, target: 'shop' | 'user', id: string, suspend: boolean, reason: string,
+): Promise<Result<{ id: string; status: string }, AppError>> {
+  if (!validReason(reason)) return err(DECISION_ERRORS.REASON_REQUIRED)
+  const { data, error } = target === 'shop'
+    ? await db.rpc('admin_set_shop_suspension', { p_shop_id: id, p_suspend: suspend, p_reason: reason })
+    : await db.rpc('admin_set_user_suspension', { p_user_id: id, p_suspend: suspend, p_reason: reason })
+  if (error) return err(mapDecisionError(error.message))
+  const row = data as { id: string; status: string }
+  return ok({ id: row.id, status: row.status })
+}
+
+/** Set a shop's active-listing cap (1–1000), audited with before/after. */
+export async function setListingCap(
+  db: SupabaseClient, shopId: string, cap: number, reason: string,
+): Promise<Result<{ id: string; listing_cap: number }, AppError>> {
+  if (!Number.isInteger(cap) || cap < 1 || cap > 1000) return err(DECISION_ERRORS.VALIDATION_ERROR)
+  if (!validReason(reason)) return err(DECISION_ERRORS.REASON_REQUIRED)
+  const { data, error } = await db.rpc('admin_set_listing_cap', { p_shop_id: shopId, p_cap: cap, p_reason: reason })
+  if (error) return err(mapDecisionError(error.message))
+  const row = data as { id: string; listing_cap: number }
+  return ok({ id: row.id, listing_cap: row.listing_cap })
 }
