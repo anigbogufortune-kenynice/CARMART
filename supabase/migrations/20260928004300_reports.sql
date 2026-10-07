@@ -86,5 +86,6 @@ begin
   end if;
   return new_id;
 end $$;
-revoke execute on function public.create_report(public.report_target, uuid, public.report_reason, text) from public, anon;
-grant execute on function public.create_report(public.report_target, uuid, public.report_reason, text) to authenticated;
+-- anon may call it only to get a clean UNAUTHENTICATED.
+revoke execute on function public.create_report(public.report_target, uuid, public.report_reason, text) from public;
+grant execute on function public.create_report(public.report_target, uuid, public.report_reason, text) to anon, authenticated;
