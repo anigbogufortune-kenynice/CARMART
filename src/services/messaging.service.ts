@@ -30,6 +30,7 @@ const MESSAGES: Record<string, string> = {
   FORBIDDEN: 'Your account can’t send messages right now',
   CONVERSATION_BLOCKED: 'This conversation has been blocked',
   CONVERSATION_LIMIT: 'You’ve started the maximum number of new conversations for today. Try again tomorrow.',
+  RATE_LIMITED: 'You’re sending messages too quickly. Wait a little, then try again.',
   VALIDATION_ERROR: 'Messages must be 1 to 2,000 characters',
 }
 

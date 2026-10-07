@@ -54,4 +54,21 @@ describe('email templates', () => {
   it('unknown kinds are an error, not a crash', () => {
     expect(render('nope', {})).toMatchObject({ ok: false, error: { code: 'UNKNOWN_TEMPLATE' } })
   })
+
+  it('new_message shows the sender, the car, a 200-char preview and links to the inbox thread', () => {
+    const r = render('new_message', { senderName: 'Jo', title: '2019 Toyota HiLux', preview: 'x'.repeat(300), path: '/sell/messages/c1', recipientRole: 'seller' })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.subject).toBe('New message about your 2019 Toyota HiLux')
+    expect(r.value.text).toContain('Jo')
+    expect(r.value.text).toContain(`${'x'.repeat(200)}…`)
+    expect(r.value.text).not.toContain('x'.repeat(201))
+    expect(r.value.text).toContain('https://carmart.example/sell/messages/c1')
+  })
+
+  it('new_message to a buyer names the car neutrally', () => {
+    const r = render('new_message', { senderName: 'Coastal Cars', title: '2019 Toyota HiLux', preview: 'Yes', path: '/account/messages/c1', recipientRole: 'buyer' })
+    expect(r.ok && r.value.subject).toBe('New message about the 2019 Toyota HiLux')
+    expect(r.ok && r.value.text).not.toContain('…')
+  })
 })
