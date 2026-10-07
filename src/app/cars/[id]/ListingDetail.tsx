@@ -4,12 +4,12 @@ import { ShowPhoneButton } from '@/components/listing/ShowPhoneButton'
 import { MessageSellerButton } from '@/components/messaging/MessageSellerButton'
 import { SpecTable } from '@/components/listing/SpecTable'
 import { RemoveListingDialog } from '@/components/admin/RemoveListingDialog'
+import { ReportDialog } from '@/components/moderation/ReportDialog'
 import { ShopCard } from '@/components/shop/ShopCard'
 import { formatDate, formatNaira } from '@/lib/format'
 import type { PublicListingView } from '@/services/search.service'
 import { CONDITION_LABELS } from '@/types/domain'
 
-const placeholder = 'w-full rounded-md px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60'
 
 type Props = { listing: PublicListingView; signedIn?: boolean; saved?: boolean; isOwner?: boolean; phoneAvailable?: boolean; isAdmin?: boolean }
 
@@ -42,6 +42,11 @@ export function ListingDetail({ listing, signedIn = false, saved = false, isOwne
               <h1 className="text-2xl font-semibold leading-tight text-[#1B2333]">{listing.title}</h1>
               {condition && <p className="mt-1 text-sm text-[#5A6578]">{condition}</p>}
               <p className="mt-3 text-3xl font-bold text-[#14284B]">{formatNaira(listing.price_cents)}</p>
+              {sold && !isOwner && (
+                <div className="mt-4">
+                  <ReportDialog targetType="listing" targetId={listing.id} signedIn={signedIn} returnTo={`/cars/${listing.id}`} />
+                </div>
+              )}
               {!sold && (
                 <div className="mt-5 space-y-2">
                   {isOwner
@@ -50,7 +55,7 @@ export function ListingDetail({ listing, signedIn = false, saved = false, isOwne
                   {phoneAvailable && !isOwner && <ShowPhoneButton listingId={listing.id} signedIn={signedIn} />}
                   <div className="grid grid-cols-2 gap-2">
                     <SaveButton listingId={listing.id} signedIn={signedIn} initialSaved={saved} />
-                    <button type="button" disabled className={`${placeholder} border border-[#CBD3DF] bg-white text-[#14284B]`}>Report</button>
+                    {!isOwner && <ReportDialog targetType="listing" targetId={listing.id} signedIn={signedIn} returnTo={`/cars/${listing.id}`} />}
                   </div>
                 </div>
               )}

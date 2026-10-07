@@ -3,6 +3,7 @@ import { formatDate } from '@/lib/format'
 import { notFound } from 'next/navigation'
 import { shopMetadata, siteUrl } from '@/lib/seo'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { ReportDialog } from '@/components/moderation/ReportDialog'
 import { ListingCard } from '@/components/search/ListingCard'
 import { searchListings } from '@/services/search.service'
 import { getPublicShopBySlug } from '@/services/shop.service'
@@ -23,7 +24,10 @@ export default async function PublicShopPage({ params }: { params: { slug: strin
   const shop = await getPublicShopBySlug(db, params.slug)
   if (!shop.ok) notFound()
   const s = shop.value
-  const cars = await searchListings(db, { sort: 'newest', page: 1 }, { shopId: s.id })
+  const [cars, { data: auth }] = await Promise.all([
+    searchListings(db, { sort: 'newest', page: 1 }, { shopId: s.id }),
+    db.auth.getUser(),
+  ])
   const items = cars.ok ? cars.value.items : []
 
   return (
@@ -41,6 +45,10 @@ export default async function PublicShopPage({ params }: { params: { slug: strin
         </div>
       </div>
       {s.description && <p className="mt-6 whitespace-pre-line text-gray-800">{s.description}</p>}
+      <div className="mt-4 max-w-[10rem]">
+        <ReportDialog targetType="shop" targetId={s.id} signedIn={!!auth.user} returnTo={`/shops/${s.slug}`}
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-center text-sm text-gray-700 hover:border-gray-500" />
+      </div>
       <section className="mt-10" aria-labelledby="cars-heading">
         <h2 id="cars-heading" className="text-lg font-semibold">Cars for sale</h2>
         {items.length > 0 ? (
