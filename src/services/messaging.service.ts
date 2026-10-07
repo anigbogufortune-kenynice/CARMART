@@ -105,6 +105,18 @@ export async function unreadCount(db: SupabaseClient): Promise<Result<UnreadCoun
 }
 
 /**
+ * The seller's verified phone for a live listing whose shop opted in (show_phone). Signed in only:
+ * visitors get UNAUTHENTICATED when a number exists, PHONE_NOT_AVAILABLE otherwise.
+ */
+export async function getShopPhone(db: SupabaseClient, listingId: string): Promise<Result<{ phone: string }, AppError>> {
+  const { data, error } = await db.rpc('listing_phone', { p_listing_id: listingId })
+  if (!error) return ok({ phone: data as string })
+  if (error.message === 'UNAUTHENTICATED') return err({ code: 'UNAUTHENTICATED', message: 'Sign in to see the phone number' })
+  if (error.message === 'PHONE_NOT_AVAILABLE') return err({ code: 'PHONE_NOT_AVAILABLE', message: 'This seller’s phone number isn’t available' })
+  return err({ code: 'INTERNAL_ERROR', message: error.message })
+}
+
+/**
  * A thread's messages, oldest first: the latest 50, or the 50 before `before`. Marks the other
  * party's messages as read.
  */

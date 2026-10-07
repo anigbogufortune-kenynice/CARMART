@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { listingMetadata, siteUrl } from '@/lib/seo'
 import { isUuid } from '@/lib/uuid'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { getShopPhone } from '@/services/messaging.service'
 import { isSaved } from '@/services/saved.service'
 import { getListingForViewer, type ListingView, type PublicListingView } from '@/services/search.service'
 import { ListingDetail } from './ListingDetail'
@@ -43,6 +44,11 @@ export default async function ListingPage({ params }: Props) {
   if (!loaded) notFound()
   const db = createServerSupabase()
   const { data: auth } = await db.auth.getUser()
-  const saved = auth.user ? await isSaved(db, loaded.listing.id) : false
-  return <ListingDetail listing={loaded.listing} signedIn={!!auth.user} saved={saved} isOwner={loaded.manages} />
+  const [saved, phone] = await Promise.all([
+    auth.user ? isSaved(db, loaded.listing.id) : Promise.resolve(false),
+    loaded.listing.status === 'live' ? getShopPhone(db, loaded.listing.id) : null,
+  ])
+  // Only whether a number exists reaches the page; the number itself is fetched on click.
+  const phoneAvailable = !!phone && (phone.ok || phone.error.code === 'UNAUTHENTICATED')
+  return <ListingDetail listing={loaded.listing} signedIn={!!auth.user} saved={saved} isOwner={loaded.manages} phoneAvailable={phoneAvailable} />
 }

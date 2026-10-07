@@ -34,6 +34,18 @@ describe('ShopForm (edit mode)', () => {
     expect(screen.getByText('The web address can’t be changed after you submit your shop.')).toBeInTheDocument()
   })
 
+  it('the phone toggle is off by default and PATCHes { show_phone: true }', async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ data: { ...existing, show_phone: true } }), { status: 200 }))
+    const user = userEvent.setup()
+    render(<ShopForm mode="edit" shop={existing} onSaved={vi.fn()} />)
+    const toggle = screen.getByRole('checkbox', { name: 'Show my phone number to signed-in buyers' })
+    expect(toggle).not.toBeChecked()
+    await user.click(toggle)
+    expect(fetchMock).toHaveBeenCalledWith('/api/shops/me', expect.objectContaining({ method: 'PATCH' }))
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ show_phone: true })
+    expect(toggle).toBeChecked()
+  })
+
   it('has no file upload control', () => {
     const { container } = render(<ShopForm mode="edit" shop={existing} onSaved={vi.fn()} />)
     expect(container.querySelector('input[type=file]')).toBeNull()

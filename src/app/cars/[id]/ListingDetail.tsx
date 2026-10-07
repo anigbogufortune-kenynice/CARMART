@@ -1,5 +1,6 @@
 import { PhotoGallery } from '@/components/listing/PhotoGallery'
 import { SaveButton } from '@/components/listing/SaveButton'
+import { ShowPhoneButton } from '@/components/listing/ShowPhoneButton'
 import { MessageSellerButton } from '@/components/messaging/MessageSellerButton'
 import { SpecTable } from '@/components/listing/SpecTable'
 import { ShopCard } from '@/components/shop/ShopCard'
@@ -9,10 +10,10 @@ import { CONDITION_LABELS } from '@/types/domain'
 
 const placeholder = 'w-full rounded-md px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60'
 
-type Props = { listing: PublicListingView; signedIn?: boolean; saved?: boolean; isOwner?: boolean }
+type Props = { listing: PublicListingView; signedIn?: boolean; saved?: boolean; isOwner?: boolean; phoneAvailable?: boolean }
 
 /** Public listing page body (server-rendered; gallery, save and message are the client parts). */
-export function ListingDetail({ listing, signedIn = false, saved = false, isOwner = false }: Props) {
+export function ListingDetail({ listing, signedIn = false, saved = false, isOwner = false, phoneAvailable = false }: Props) {
   const sold = listing.status === 'sold'
   const condition = listing.condition && listing.condition in CONDITION_LABELS
     ? CONDITION_LABELS[listing.condition as keyof typeof CONDITION_LABELS] : null
@@ -45,6 +46,7 @@ export function ListingDetail({ listing, signedIn = false, saved = false, isOwne
                   {isOwner
                     ? <p className="rounded-md bg-[#F6F8FB] px-4 py-2.5 text-sm text-[#5A6578]">This is your listing.</p>
                     : <MessageSellerButton listingId={listing.id} title={listing.title} signedIn={signedIn} />}
+                  {phoneAvailable && !isOwner && <ShowPhoneButton listingId={listing.id} signedIn={signedIn} />}
                   <div className="grid grid-cols-2 gap-2">
                     <SaveButton listingId={listing.id} signedIn={signedIn} initialSaved={saved} />
                     <button type="button" disabled className={`${placeholder} border border-[#CBD3DF] bg-white text-[#14284B]`}>Report</button>
