@@ -17,3 +17,9 @@ export function nairaInput(kobo: number | null | undefined): string {
 export function formatDate(iso: string, options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }): string {
   return new Date(iso).toLocaleDateString('en-GB', { ...options, timeZone: TIME_ZONE })
 }
+
+/** +2348031234567 → "+234 803 123 4567" (display only; anything else is returned as is). */
+export function formatNgPhone(e164: string): string {
+  const m = /^\+234(\d{3})(\d{3})(\d{4})$/.exec(e164)
+  return m ? `+234 ${m[1]} ${m[2]} ${m[3]}` : e164
+}

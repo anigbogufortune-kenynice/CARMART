@@ -40,6 +40,24 @@ export function ShopForm({ mode, shop, onSaved }: Props) {
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [showPhone, setShowPhone] = useState(shop?.show_phone ?? false)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
+
+  /** Saved on its own, straight away, so it doesn't depend on the rest of the form. */
+  async function toggleShowPhone(next: boolean) {
+    setShowPhone(next)
+    setPhoneError(null)
+    try {
+      const res = await fetch('/api/shops/me', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ show_phone: next }),
+      })
+      if (res.ok) return
+    } catch {
+      // handled below
+    }
+    setShowPhone(!next)
+    setPhoneError('Couldn’t update this setting. Please try again.')
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -133,6 +151,19 @@ export function ShopForm({ mode, shop, onSaved }: Props) {
           {error('state')}
         </div>
       </div>
+      {mode === 'edit' && (
+        <div className="rounded border border-gray-200 bg-white px-3 py-3">
+          <div className="flex items-start gap-3 text-sm">
+            <input id="show-phone" type="checkbox" checked={showPhone} aria-describedby="show-phone-help"
+              onChange={(e) => void toggleShowPhone(e.target.checked)} className="mt-0.5 h-4 w-4" />
+            <div>
+              <label htmlFor="show-phone" className="font-medium">Show my phone number to signed-in buyers</label>
+              <p id="show-phone-help" className="text-gray-600">Buyers who are signed in can tap to see and call your verified number. Off by default.</p>
+            </div>
+          </div>
+          {phoneError && <p role="alert" className="mt-2 text-sm text-red-700">{phoneError}</p>}
+        </div>
+      )}
       {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
       {saved && <p role="status" className="text-sm text-green-800">Saved</p>}
       <button type="submit" className="rounded bg-gray-900 px-4 py-2 text-white">{mode === 'create' ? 'Create shop' : 'Save changes'}</button>
