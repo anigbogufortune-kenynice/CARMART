@@ -30,10 +30,10 @@ export async function draft(db: SupabaseClient) {
  * response from the upstream server"). Call in beforeAll: waits until storage answers.
  */
 export async function warmStorage(): Promise<void> {
-  for (let attempt = 0; attempt < 10; attempt++) {
+  for (let attempt = 0; attempt < 60; attempt++) {
     const res = await adminDb().storage.from('listing-quarantine').list('', { limit: 1 }).catch(() => ({ error: new Error('down') }))
     if (!res.error) return
-    await new Promise((r) => setTimeout(r, 1500))
+    await new Promise((r) => setTimeout(r, 2000))
   }
 }
 

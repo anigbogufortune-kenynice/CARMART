@@ -4,7 +4,7 @@ import { listQueue, type ImageQueueItem } from '@/services/moderation.service'
 import { draft, providers, seller, uploadFixture, warmStorage } from '../helpers/image-fixtures'
 import { adminDb, asUser, createUser, resetDb } from '../helpers/supabase-test'
 
-beforeAll(warmStorage, 30_000)
+beforeAll(warmStorage, 150_000)
 
 afterEach(async () => {
   await resetDb()
