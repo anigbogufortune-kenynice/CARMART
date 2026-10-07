@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { formatDate } from '@/lib/format'
 import type { Message } from '@/services/messaging.service'
+import { ReportDialog } from '@/components/moderation/ReportDialog'
 import { Composer } from './Composer'
 
 export const POLL_MS = 10_000
@@ -108,7 +109,9 @@ export function ThreadView({ conversationId, currentUserId, initial, blocked: in
         <div className="rounded-xl border border-[#E2E7EF] bg-white p-4">
           <Composer value={body} onChange={setBody} onSend={() => void send()} busy={busy} />
           {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
-          <div className="mt-3 border-t border-[#E2E7EF] pt-3 text-right">
+          <div className="mt-3 flex items-center justify-end gap-4 border-t border-[#E2E7EF] pt-3">
+            <ReportDialog targetType="conversation" targetId={conversationId} signedIn returnTo=""
+              className="text-sm text-[#5A6578] underline hover:text-red-700" />
             <button type="button" onClick={() => void block()} className="text-sm text-[#5A6578] underline hover:text-red-700">Block</button>
           </div>
         </div>
