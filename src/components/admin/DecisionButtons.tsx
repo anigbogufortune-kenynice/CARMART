@@ -4,29 +4,37 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ReasonDialog } from './ReasonDialog'
 
-type Props = { endpoint: string; approveLabel: string; rejectTitle: string }
+type Props = {
+  endpoint: string
+  approveLabel: string
+  rejectTitle: string
+  /** The positive action's path segment and body (default: `approve`, `{}`), e.g. `clear-flag` + `{ flag }`. */
+  approveAction?: string
+  approveBody?: Record<string, string>
+}
 
 /**
  * Approve / Reject (with a reason) for an admin queue item: POSTs `${endpoint}/approve|reject`.
  * On success the buttons give way to a short confirmation and the queue refreshes.
  */
-export function DecisionButtons({ endpoint, approveLabel, rejectTitle }: Props) {
+export function DecisionButtons({ endpoint, approveLabel, rejectTitle, approveAction = 'approve', approveBody = {} }: Props) {
   const router = useRouter()
   const [rejecting, setRejecting] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState<'Approved' | 'Rejected' | null>(null)
+  const [done, setDone] = useState<'Done' | 'Rejected' | null>(null)
 
   async function decide(action: 'approve' | 'reject', reason?: string) {
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch(`${endpoint}/${action}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reason ? { reason } : {}),
+      const res = await fetch(`${endpoint}/${action === 'approve' ? approveAction : 'reject'}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(action === 'approve' ? approveBody : { reason }),
       })
       if (res.ok) {
         setRejecting(false)
-        setDone(action === 'approve' ? 'Approved' : 'Rejected')
+        setDone(action === 'approve' ? 'Done' : 'Rejected')
         router.refresh()
         return
       }

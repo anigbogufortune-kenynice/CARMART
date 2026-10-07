@@ -45,6 +45,14 @@ const TEMPLATES: Record<string, Template> = {
   }),
   listing_rejected: (p, site) => {
     const photos = Array.isArray(p.photos) ? (p.photos as { position?: unknown; reason?: unknown }[]) : []
+    if (p.reason) {
+      // Rejected by our team (issue 042), not by the photo checks.
+      return {
+        subject: `Your ${str(p.title)} needs changes`,
+        lines: [`Our team couldn’t publish your ${str(p.title)}.`, `Reason: ${str(p.reason)}`, 'Fix the listing, then submit it again.'],
+        link: { href: `${site}/sell/listings/${str(p.listingId)}`, label: 'Fix your listing' },
+      }
+    }
     return {
       subject: `Your ${str(p.title)} needs new photos`,
       lines: [
@@ -74,6 +82,15 @@ const TEMPLATES: Record<string, Template> = {
       link: { href: `${site}${str(p.path)}`, label: 'Read and reply' },
     }
   },
+  listing_removed: (p, site) => ({
+    subject: `Your ${str(p.title)} was removed from CarMart`,
+    lines: [
+      `Our team removed your ${str(p.title)} listing. It is no longer visible to buyers and can’t be put back.`,
+      `Reason: ${str(p.reason)}`,
+      'If you think this is a mistake, contact us through the Contact page on CarMart.',
+    ],
+    link: { href: `${site}/sell/listings`, label: 'See your cars' },
+  }),
   listing_in_review: (p, site) => ({
     subject: `Your ${str(p.title)} is being reviewed`,
     lines: [

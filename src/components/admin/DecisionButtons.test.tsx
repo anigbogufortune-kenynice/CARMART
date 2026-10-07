@@ -15,7 +15,7 @@ describe('DecisionButtons', () => {
     render(<div data-testid="card"><DecisionButtons endpoint="/api/admin/images/i1" approveLabel="Approve photo" rejectTitle="Reject photo 1" /></div>)
     await userEvent.setup().click(screen.getByRole('button', { name: 'Approve photo' }))
     expect(fetchMock).toHaveBeenCalledWith('/api/admin/images/i1/approve', expect.objectContaining({ method: 'POST' }))
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Approved'))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Done'))
     expect(screen.queryByRole('button', { name: 'Approve photo' })).toBeNull()
     expect(refresh).toHaveBeenCalled()
   })
@@ -39,5 +39,16 @@ describe('DecisionButtons', () => {
     render(<DecisionButtons endpoint="/api/admin/images/i1" approveLabel="Approve photo" rejectTitle="Reject photo 1" />)
     await userEvent.setup().click(screen.getByRole('button', { name: 'Approve photo' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('This item has already been decided')
+  })
+
+  it('a custom positive action (clear-flag) sends its body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: { id: 'l1', status: 'live' } }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    render(<DecisionButtons endpoint="/api/admin/listings/l1" approveLabel="Clear flag" rejectTitle="Reject listing"
+      approveAction="clear-flag" approveBody={{ flag: 'duplicate_vin' }} />)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Clear flag' }))
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('/api/admin/listings/l1/clear-flag')
+    expect(JSON.parse(String(init.body))).toEqual({ flag: 'duplicate_vin' })
   })
 })
