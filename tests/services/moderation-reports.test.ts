@@ -45,11 +45,12 @@ describe('reports queue', () => {
     const item = res.value.items[0] as ReportQueueItem
     expect(await decideReport(admin, item.report_id, 'dismiss', 'Checked, legit')).toEqual({ ok: true, value: { closed: 3 } })
 
-    const { data: rows } = await adminDb().from('reports').select('status,resolved_by,resolution_note').eq('target_id', id)
+    const { data: rows } = await adminDb().from('reports').select('id,status,resolved_by,resolution_note').eq('target_id', id)
     const { data: me } = await admin.auth.getUser()
     expect(rows).toHaveLength(3)
-    for (const r of rows ?? []) expect(r).toEqual({ status: 'dismissed', resolved_by: me.user!.id, resolution_note: 'Checked, legit' })
-    const { data: audit } = await adminDb().from('admin_actions').select('action').eq('target_type', 'report')
+    for (const r of rows ?? []) expect(r).toMatchObject({ status: 'dismissed', resolved_by: me.user!.id, resolution_note: 'Checked, legit' })
+    // admin_actions is append-only across the run: look only at this target's reports.
+    const { data: audit } = await adminDb().from('admin_actions').select('action').eq('target_type', 'report').in('target_id', (rows ?? []).map((r) => r.id))
     expect(audit?.filter((a) => a.action === 'report.dismiss')).toHaveLength(3)
     expect((await adminDb().from('listings').select('status').eq('id', id).single()).data).toEqual({ status: 'in_review' })
     expect(await decideReport(admin, item.report_id, 'action', 'Again')).toMatchObject({ ok: false, error: { code: 'INVALID_STATE' } })

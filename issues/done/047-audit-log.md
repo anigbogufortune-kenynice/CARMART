@@ -26,10 +26,10 @@ As the business, I want a trustworthy record of every moderation decision.
 - docs/systems/shop-onboarding.md: INV-S4 (one audit row per admin transition)
 
 ## Acceptance Criteria
-- [ ] `listAuditLog(db, { page, target_type?, target_id? })` newest first, 50 per page, with the actor display name
-- [ ] /admin/audit-log shows a table with filters (target type, target id) and expandable details JSON; each target links to the relevant page
-- [ ] A cross-cutting test proves every admin action from 012, 040, 042, 044, 045 and 046 writes exactly one row with a non-empty action and target
-- [ ] No UPDATE/DELETE is possible on admin_actions for admins, users or the service role
+- [x] `listAuditLog(db, { page, target_type?, target_id? })` newest first, 50 per page, with the actor display name
+- [x] /admin/audit-log shows a table with filters (target type, target id) and expandable details JSON; each target links to the relevant page
+- [x] A cross-cutting test proves every admin action from 012, 040, 042, 044, 045 and 046 writes exactly one row with a non-empty action and target
+- [x] No UPDATE/DELETE is possible on admin_actions for admins, users or the service role
 
 ## Files to Modify
 - src/services/moderation.service.ts: `listAuditLog`
