@@ -16,7 +16,7 @@ export function ListingCard({ car }: { car: Card }) {
           // eslint-disable-next-line @next/next/no-img-element -- public WebP variants are already sized (sm = 400px)
           <img src={car.thumbnail_url} alt={car.title} loading="lazy" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-[#8A94A6]">No photo yet</div>
+          <div className="flex h-full items-center justify-center text-sm text-[#5A6578]">No photo yet</div>
         )}
       </div>
       <div className="flex flex-1 flex-col p-4">

@@ -75,7 +75,7 @@ export function AuthForm({ next, notice }: { next?: string; notice?: string }) {
       </button>
       <p className="text-sm">
         <Link href="/auth/reset" className="underline">Forgot your password?</Link>
-        <span className="mx-2 text-gray-400">·</span>
+        <span aria-hidden className="mx-2 text-gray-500">·</span>
         <Link href="/sign-up" className="underline">Create an account</Link>
       </p>
     </div>

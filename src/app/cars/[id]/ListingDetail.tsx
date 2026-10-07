@@ -44,7 +44,7 @@ export function ListingDetail({ listing, signedIn = false, saved = false }: { li
                     <SaveButton listingId={listing.id} signedIn={signedIn} initialSaved={saved} />
                     <button type="button" disabled className={`${placeholder} border border-[#CBD3DF] bg-white text-[#14284B]`}>Report</button>
                   </div>
-                  <p className="text-xs text-[#8A94A6]">Messaging the seller opens soon.</p>
+                  <p className="text-xs text-[#5A6578]">Messaging the seller opens soon.</p>
                 </div>
               )}
             </div>

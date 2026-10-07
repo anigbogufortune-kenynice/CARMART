@@ -24,10 +24,10 @@ As the team, I want the main journeys and accessibility verified automatically, 
 - docs/env.md: fake providers in tests, local test OTP
 
 ## Acceptance Criteria
-- [ ] e2e/seller-journey.spec.ts: sign up → verify email (Inbucket) → create shop → verify phone (test OTP) → submit → admin approves → create listing → upload 4 fixture photos → submit → the listing becomes Live
-- [ ] e2e/buyer-journey.spec.ts: search /cars with filters → open a listing → save it → it appears on /account/saved
-- [ ] e2e/a11y.spec.ts: axe (wcag2a, wcag2aa) on /, /cars, /cars/[id], /shops/[slug], /sign-up, /sell, at 1280px and 360px → 0 serious/critical violations
-- [ ] Any violation found that needs changes outside this issue's files is written to issues/discovered/ (with the failing selector) instead of being fixed here
+- [x] e2e/seller-journey.spec.ts: sign up → verify email (Inbucket) → create shop → verify phone (test OTP) → submit → admin approves → create listing → upload 4 fixture photos → submit → the listing becomes Live
+- [x] e2e/buyer-journey.spec.ts: search /cars with filters → open a listing → save it → it appears on /account/saved
+- [x] e2e/a11y.spec.ts: axe (wcag2a, wcag2aa) on /, /cars, /cars/[id], /shops/[slug], /sign-up, /sell, at 1280px and 360px → 0 serious/critical violations
+- [x] Any violation found that needs changes outside this issue's files is written to issues/discovered/ (with the failing selector) instead of being fixed here
 
 ## Files to Modify
 - e2e/helpers.ts: signUpAndVerify, signInAs, createApprovedShop, uploadFixture

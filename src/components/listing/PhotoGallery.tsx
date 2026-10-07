@@ -7,7 +7,7 @@ import type { PublicPhoto } from '@/services/search.service'
 export function PhotoGallery({ title, photos }: { title: string; photos: PublicPhoto[] }) {
   const [index, setIndex] = useState(0)
   if (photos.length === 0) {
-    return <div className="flex aspect-[4/3] items-center justify-center rounded-xl bg-[#EEF1F6] text-[#8A94A6]">No photos yet</div>
+    return <div className="flex aspect-[4/3] items-center justify-center rounded-xl bg-[#EEF1F6] text-[#5A6578]">No photos yet</div>
   }
   const total = photos.length
   const current = photos[Math.min(index, total - 1)]

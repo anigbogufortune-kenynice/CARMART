@@ -26,7 +26,7 @@ export function Pagination({ page, size, total, params }: Props) {
       {page > 1 && <Link href={href(params, page - 1)} aria-label="Previous page" className={`${cell} border-[#CBD3DF] bg-white`}>‹ Prev</Link>}
       {windowed(page, last).map((p, i) =>
         p === '…' ? (
-          <span key={`gap-${i}`} className="px-1 text-[#8A94A6]">…</span>
+          <span key={`gap-${i}`} className="px-1 text-[#5A6578]">…</span>
         ) : p === page ? (
           <span key={p} aria-current="page" className={`${cell} border-[#14284B] bg-[#14284B] font-semibold text-white`}>{p}</span>
         ) : (
